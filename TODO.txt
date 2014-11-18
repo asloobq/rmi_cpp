@@ -1,0 +1,2 @@
+Add Rmi object to stub.
+connect in constr() and disconnect in destr().
