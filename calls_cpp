@@ -1,0 +1,300 @@
+    {
+        int n = stub.method1(1);
+    }
+    {
+        int n = stub.method2(2);
+    }
+    {
+        int n = stub.method3(3);
+    }
+    {
+        int n = stub.method4(4);
+    }
+    {
+        int n = stub.method5(5);
+    }
+    {
+        int n = stub.method6(6);
+    }
+    {
+        int n = stub.method7(7);
+    }
+    {
+        int n = stub.method8(8);
+    }
+    {
+        int n = stub.method9(9);
+    }
+    {
+        int n = stub.method10(10);
+    }
+    {
+        int n = stub.method11(11);
+    }
+    {
+        int n = stub.method12(12);
+    }
+    {
+        int n = stub.method13(13);
+    }
+    {
+        int n = stub.method14(14);
+    }
+    {
+        int n = stub.method15(15);
+    }
+    {
+        int n = stub.method16(16);
+    }
+    {
+        int n = stub.method17(17);
+    }
+    {
+        int n = stub.method18(18);
+    }
+    {
+        int n = stub.method19(19);
+    }
+    {
+        int n = stub.method20(20);
+    }
+    {
+        int n = stub.method21(21);
+    }
+    {
+        int n = stub.method22(22);
+    }
+    {
+        int n = stub.method23(23);
+    }
+    {
+        int n = stub.method24(24);
+    }
+    {
+        int n = stub.method25(25);
+    }
+    {
+        int n = stub.method26(26);
+    }
+    {
+        int n = stub.method27(27);
+    }
+    {
+        int n = stub.method28(28);
+    }
+    {
+        int n = stub.method29(29);
+    }
+    {
+        int n = stub.method30(30);
+    }
+    {
+        int n = stub.method31(31);
+    }
+    {
+        int n = stub.method32(32);
+    }
+    {
+        int n = stub.method33(33);
+    }
+    {
+        int n = stub.method34(34);
+    }
+    {
+        int n = stub.method35(35);
+    }
+    {
+        int n = stub.method36(36);
+    }
+    {
+        int n = stub.method37(37);
+    }
+    {
+        int n = stub.method38(38);
+    }
+    {
+        int n = stub.method39(39);
+    }
+    {
+        int n = stub.method40(40);
+    }
+    {
+        int n = stub.method41(41);
+    }
+    {
+        int n = stub.method42(42);
+    }
+    {
+        int n = stub.method43(43);
+    }
+    {
+        int n = stub.method44(44);
+    }
+    {
+        int n = stub.method45(45);
+    }
+    {
+        int n = stub.method46(46);
+    }
+    {
+        int n = stub.method47(47);
+    }
+    {
+        int n = stub.method48(48);
+    }
+    {
+        int n = stub.method49(49);
+    }
+    {
+        int n = stub.method50(50);
+    }
+    {
+        int n = stub.method51(51);
+    }
+    {
+        int n = stub.method52(52);
+    }
+    {
+        int n = stub.method53(53);
+    }
+    {
+        int n = stub.method54(54);
+    }
+    {
+        int n = stub.method55(55);
+    }
+    {
+        int n = stub.method56(56);
+    }
+    {
+        int n = stub.method57(57);
+    }
+    {
+        int n = stub.method58(58);
+    }
+    {
+        int n = stub.method59(59);
+    }
+    {
+        int n = stub.method60(60);
+    }
+    {
+        int n = stub.method61(61);
+    }
+    {
+        int n = stub.method62(62);
+    }
+    {
+        int n = stub.method63(63);
+    }
+    {
+        int n = stub.method64(64);
+    }
+    {
+        int n = stub.method65(65);
+    }
+    {
+        int n = stub.method66(66);
+    }
+    {
+        int n = stub.method67(67);
+    }
+    {
+        int n = stub.method68(68);
+    }
+    {
+        int n = stub.method69(69);
+    }
+    {
+        int n = stub.method70(70);
+    }
+    {
+        int n = stub.method71(71);
+    }
+    {
+        int n = stub.method72(72);
+    }
+    {
+        int n = stub.method73(73);
+    }
+    {
+        int n = stub.method74(74);
+    }
+    {
+        int n = stub.method75(75);
+    }
+    {
+        int n = stub.method76(76);
+    }
+    {
+        int n = stub.method77(77);
+    }
+    {
+        int n = stub.method78(78);
+    }
+    {
+        int n = stub.method79(79);
+    }
+    {
+        int n = stub.method80(80);
+    }
+    {
+        int n = stub.method81(81);
+    }
+    {
+        int n = stub.method82(82);
+    }
+    {
+        int n = stub.method83(83);
+    }
+    {
+        int n = stub.method84(84);
+    }
+    {
+        int n = stub.method85(85);
+    }
+    {
+        int n = stub.method86(86);
+    }
+    {
+        int n = stub.method87(87);
+    }
+    {
+        int n = stub.method88(88);
+    }
+    {
+        int n = stub.method89(89);
+    }
+    {
+        int n = stub.method90(90);
+    }
+    {
+        int n = stub.method91(91);
+    }
+    {
+        int n = stub.method92(92);
+    }
+    {
+        int n = stub.method93(93);
+    }
+    {
+        int n = stub.method94(94);
+    }
+    {
+        int n = stub.method95(95);
+    }
+    {
+        int n = stub.method96(96);
+    }
+    {
+        int n = stub.method97(97);
+    }
+    {
+        int n = stub.method98(98);
+    }
+    {
+        int n = stub.method99(99);
+    }
+    {
+        int n = stub.method100(100);
+    }
