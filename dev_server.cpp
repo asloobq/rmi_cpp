@@ -16,15 +16,18 @@ class DevInterfaceImpl : public DevInterface {
 };
 
 int
-DevInterfaceImpl::my_method1(int, const string &, int) {
-    assert(false);
-    return -1;
+DevInterfaceImpl::my_method1(int arg1, const string &arg2, int arg3) {
+    //Sample implementation for this method
+    int result = arg1 + arg3 + arg2.length();
+    return result;
 }
 
 string
-DevInterfaceImpl::my_method2(int, int) {
-    assert(false);
-    return "";
+DevInterfaceImpl::my_method2(int arg1, int arg2) {
+    std::string result = "arg1 =  " + arg1;
+    result = result + " arg2 = ";
+    result.push_back(arg2);
+    return result;
 }
 
 

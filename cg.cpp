@@ -173,11 +173,13 @@ main(int argc, char *argv[]) {
         emitter.emitLineF("#define %s_STUB_HPP", uc_intf_name.c_str());
         emitter.emitLine("");
         emitter.emitLine("#include \"$$.hpp\"");
+        emitter.emitLine("#include <string>");
         emitter.emitLine("");
         emitter.emitLine("class $$_stub : public $$ {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "public:");
+        emitter.emitLine(1, "std::string mObjRef;");
+        emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_stub(const std::string &);");
         // Emit the methods.
@@ -214,14 +216,15 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 
         // Emit the constructor.
-        emitter.emitLine("$$_stub::$$_stub(const std::string &) {");
+        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {}");
+        emitter.emitLine("");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1,
-         "std::cerr << \"'$$_stub::$$_stub($$ *)' needs to be filled in.\" << std::endl;");
+        //emitter.emitLine(1,
+        // "std::cerr << \"'$$_stub::$$_stub($$ *)' needs to be filled in.\" << std::endl;");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
-        emitter.emitLine(-1, "}");
+        //emitter.emitLine(-1, "}");
 
         for (size_t i = 0; i < methods.size(); i++) {
             // Put a blank line if not the first method.
