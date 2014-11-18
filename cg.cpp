@@ -268,9 +268,12 @@ main(int argc, char *argv[]) {
         emitter.emitLine("class $$_skel : public Skeleton {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "public:");
+        emitter.emitLine(1, "$$ *mInterface;");
+        emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_skel($$ *);");
+        emitter.emitLine("");
+        emitter.emitLine("virtual std::string getObjectReference() const;");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -296,11 +299,21 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 
         // Emit the constructor.
-        emitter.emitLine("$$_skel::$$_skel($$ *) {");
+        emitter.emitLine("$$_skel::$$_skel($$ *interfaceIn) : mInterface(interfaceIn) {}");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1,
-         "std::cerr << \"'$$_skel::$$_skel($$ *)' needs to be filled in.\" << std::endl;");
+        //emitter.emitLine(1,
+        // "std::cerr << \"'$$_skel::$$_skel($$ *)' needs to be filled in.\" << std::endl;");
+	// The -1 as the first argument causes the indent level to be decremented
+	// before outputting the line.
+        //emitter.emitLine(-1, "}");
+        emitter.emitLine("");
+        // Emit the getObjectReference method
+        emitter.emitLine("std::string $$_skel::getObjectReference() const {");
+        // The 1 as the first argument causes the indent level to be incremented
+	// before outputting the line.
+        emitter.emitLine(1, "std::string ref = \"myObjRef1\"; //need to generate from object ");
+        emitter.emitLine("return ref;");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
