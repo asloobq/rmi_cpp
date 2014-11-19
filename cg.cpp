@@ -174,11 +174,13 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include \"$$.hpp\"");
         emitter.emitLine("#include <string>");
+        emitter.emitLine("#include \"Rmi.hpp\"");
         emitter.emitLine("");
         emitter.emitLine("class $$_stub : public $$ {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "std::string mObjRef;");
+        emitter.emitLine("Rmi::Rmi *mRmiObj;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_stub(const std::string &);");
@@ -191,6 +193,10 @@ main(int argc, char *argv[]) {
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(");");
         }
+
+        // Emit the destructor
+        emitter.emitLine("virtual ~$$_stub();");
+
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -216,8 +222,16 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 
         // Emit the constructor.
-        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {}");
+        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {");
         emitter.emitLine("");
+	// The 1 as the first argument causes the indent level to be incremented
+	// before outputting the line.
+        emitter.emitLine(1,"mRmiObj = new Rmi::Rmi();");
+        emitter.emitLine("mRmiObj->connect();");
+	// The -1 as the first argument causes the indent level to be decremented
+	// before outputting the line.
+        emitter.emitLine(-1, "}");
+
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         //emitter.emitLine(1,
@@ -248,6 +262,17 @@ main(int argc, char *argv[]) {
             }
             emitter.emitLine(-1, "}");
         }
+
+        // Emit the destructor
+        emitter.emitLine("$$_stub::~$$_stub() {");
+        emitter.emitLine("");
+	// The 1 as the first argument causes the indent level to be incremented
+	// before outputting the line.
+        emitter.emitLine(1, "mRmiObj->disconnect();");
+	// The -1 as the first argument causes the indent level to be decremented
+	// before outputting the line.
+        emitter.emitLine(-1, "}");
+
     }
 
     /*

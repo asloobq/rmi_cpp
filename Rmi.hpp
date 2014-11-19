@@ -1,7 +1,10 @@
 #ifndef RMI_HPP
 #define RMI_HPP
 
+#include <string>
 #include "Params.hpp"
+
+namespace Rmi {
 
 class Rmi {
 
@@ -16,4 +19,5 @@ class Rmi {
 
 };
 
+}
 #endif //RMI_HPP
