@@ -225,7 +225,6 @@ main(int argc, char *argv[]) {
 
         // Emit the constructor.
         emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {");
-        emitter.emitLine("");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
@@ -255,7 +254,7 @@ main(int argc, char *argv[]) {
             emitter.emitLineEnd(") {");
             // KEC: emitter.emitLine(1, "assert(false);");
             //Emit method body
-            emitter.emitLine(1, "");
+            emitter.increment_indent_level();
             std::string sign = createMethodSignature(methods[i]);
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
@@ -281,7 +280,6 @@ main(int argc, char *argv[]) {
         // Emit the destructor
         emitter.emitLine("");
         emitter.emitLine("$$_stub::~$$_stub() {");
-        emitter.emitLine("");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "mRmiObj->disconnect();");
