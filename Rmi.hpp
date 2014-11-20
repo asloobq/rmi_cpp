@@ -13,9 +13,9 @@ class Rmi {
         void disconnect();
         // Probably not the right way to define methods but 
         // doing it just for the understanding
-        void asyncCall(Params&);
-        int intCall(Params&);
-        std::string stringCall(Params&);
+        void asyncCall(std::string, std::string, Params&);
+        int intCall(std::string, std::string, Params&);
+        std::string stringCall(std::string, std::string, Params&);
 
 };
 

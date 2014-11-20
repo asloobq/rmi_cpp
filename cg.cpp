@@ -219,6 +219,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include \"$$_stub.hpp\"");
         emitter.emitLine("#include <iostream>");
         emitter.emitLine("#include <assert.h>");
+        emitter.emitLine("#include \"Params.hpp\"");
         emitter.emitLine("");
 
         // Emit the constructor.
@@ -226,7 +227,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1,"mRmiObj = new Rmi::Rmi();");
+        emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
         emitter.emitLine("mRmiObj->connect();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
@@ -252,18 +253,28 @@ main(int argc, char *argv[]) {
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(") {");
             // KEC: emitter.emitLine(1, "assert(false);");
-            emitter.emitLine(1, "");
+            //Emit method body
+            emitter.emitLine(1, "");            
             if (methods[i].return_type == "int") {
-                emitter.emitLine("return -1;");
+                emitter.emitLine("int result = 0;");
+                emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
+                emitter.emitLineF("result = mRmiObj->intCall(mObjRef,\"%s\", *param);", methods[i].name.c_str());
+                emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
-                emitter.emitLine("return \"\";");
+                emitter.emitLine("std::string result;");
+                emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
+                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef,\"%s\", *param);", methods[i].name.c_str());
+                emitter.emitLine("return result;");
             } else {
-                assert(false);
+                emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
+                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef,\"%s\", *param);", methods[i].name.c_str());
+                //assert(false);
             }
             emitter.emitLine(-1, "}");
         }
 
         // Emit the destructor
+        emitter.emitLine("");
         emitter.emitLine("$$_stub::~$$_stub() {");
         emitter.emitLine("");
 	// The 1 as the first argument causes the indent level to be incremented
