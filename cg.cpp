@@ -30,7 +30,8 @@ struct Method {
 void
 emit_params(Emitter *, const vector<string> &param_types);
 
-
+std::string
+createMethodSignature(Method &method);
 
 int
 main(int argc, char *argv[]) {
@@ -254,20 +255,24 @@ main(int argc, char *argv[]) {
             emitter.emitLineEnd(") {");
             // KEC: emitter.emitLine(1, "assert(false);");
             //Emit method body
-            emitter.emitLine(1, "");            
+            emitter.emitLine(1, "");
+            std::string sign = createMethodSignature(methods[i]);
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->intCall(mObjRef,\"%s\", *param);", methods[i].name.c_str());
+                                emitter.emitLineF("result = mRmiObj->intCall(mObjRef,\"%s\", \"%s\",*param);", 
+                                  methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
                 emitter.emitLine("std::string result;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef,\"%s\", *param);", methods[i].name.c_str());
+                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef,\"%s\", \"%s\", *param);",
+                                  methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else {
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef,\"%s\", *param);", methods[i].name.c_str());
+                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef,\"%s\", \"%s\", *param);",
+                                  methods[i].name.c_str(), sign.c_str());
                 //assert(false);
             }
             emitter.emitLine(-1, "}");
@@ -376,7 +381,27 @@ emit_params(Emitter *emitter, const vector<string> &param_types) {
     }
 }
 
+/*
+  Creates the method signature which will be used to uniquely
+  identify the method by the server.
+  <method name> <type1> <type2> ...
+*/
+std::string
+createMethodSignature(Method& method) {
+    /*string name;
+    string return_type;
+    vector<string> param_types;*/
+    std::string sign("");
+    //sign.push_back(method.name);
+    //sign.push_back(" ");
+    for(std::vector<std::string>::iterator it = method.param_types.begin(); it != method.param_types.end(); ++it) {
+        sign = sign + *it;
+        sign = sign + " ";
+    }
 
+    //return by value ?
+    return sign;
+}
 
 /*
  * These lines should go at the end of every source code file
