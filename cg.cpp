@@ -120,13 +120,16 @@ main(int argc, char *argv[]) {
         emitter.emitLineF("#define %s_HPP", uc_intf_name.c_str());
         emitter.emitLine("");
         emitter.emitLine("#include <string>");
+        emitter.emitLine("#include \"RmiServer.hpp\"");
         emitter.emitLine("");
         emitter.emitLine("class $$ {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "public:");
+        emitter.emitLine(1, "Rmi::RmiServer *mServer;");
+        emitter.emitLine("public:");
         emitter.increment_indent_level();
-	emitter.emitLine("virtual ~$$() {}");
+        emitter.emitLine("$$();");
+	emitter.emitLine("virtual ~$$();");
         // Output the methods.
         for (size_t i = 0; i < methods.size(); i++) {
             emitter.emitLineStartF("virtual %s %s(",
@@ -135,6 +138,7 @@ main(int argc, char *argv[]) {
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(") = 0;");
         }
+        emitter.emitLine("void stopServer();");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -156,6 +160,19 @@ main(int argc, char *argv[]) {
         emitter.emitLine("/*  This file is generated.  DO NOT MODIFY DIRECTLY!  */");
         emitter.emitLine("");
         emitter.emitLine("#include \"$$.hpp\"");
+        emitter.emitLine("");
+        emitter.emitLine("$$::$$() {");
+        emitter.emitLine(1, "mServer = new Rmi::RmiServer();");
+        //TODO start server
+        emitter.emitLine(-1, "}");
+        emitter.emitLine("");
+        emitter.emitLine("$$::~$$() {");
+        //TODO stop server
+        emitter.emitLine(1, "delete mServer;");
+        emitter.emitLine(-1, "}");
+        emitter.emitLine("void $$::stopServer() {");
+        emitter.emitLine(1, "mServer->stopServer();");
+        emitter.emitLine(-1, "}");
     }
 
     /*
@@ -229,6 +246,7 @@ main(int argc, char *argv[]) {
 	// before outputting the line.
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
         emitter.emitLine("mRmiObj->connect();");
+        emitter.emitLine("stopServer();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
@@ -283,6 +301,7 @@ main(int argc, char *argv[]) {
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "mRmiObj->disconnect();");
+        emitter.emitLine("delete mRmiObj;");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");

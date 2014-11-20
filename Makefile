@@ -44,6 +44,7 @@ LibSrcs := \
 	Skeleton.cpp \
 	Params.cpp \
 	Rmi.cpp \
+	RmiServer.cpp \
 
 #
 # Development interfaces
