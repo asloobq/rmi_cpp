@@ -9,7 +9,7 @@ namespace Rmi {
 class Rmi {
 
     public:
-        void connect();
+        void connectToServer();
         void disconnect();
         // Probably not the right way to define methods but 
         // doing it just for the understanding

@@ -178,7 +178,7 @@ Deps := $(patsubst %,.%.do,$(basename $(Srcs)))
 # Compilation flags ------------------------------------------------------------
 
 CPPFLAGS = -MMD -MF $(basename .$(@F)).do
-CXXFLAGS := -Wall -Wno-unused $(OptFlag)
+CXXFLAGS := -std=c++0x -Wall -Wno-unused $(OptFlag)
 ifeq ($(Uname),Linux)
 CXXFLAGS += -pthread
 RunPathOption = -Wl,-rpath=$(CURDIR)

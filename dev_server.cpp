@@ -11,6 +11,7 @@ using namespace std;
 
 class DevInterfaceImpl : public DevInterface {
     public:
+        DevInterfaceImpl() : DevInterface(true) {} /* NOTE: RMI system should work without this */
         virtual int my_method1(int, const string &, int);
         virtual string my_method2(int, int);
 };

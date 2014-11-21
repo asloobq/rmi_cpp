@@ -126,9 +126,10 @@ main(int argc, char *argv[]) {
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "Rmi::RmiServer *mServer;");
+        emitter.emitLine("bool mIsServer;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
-        emitter.emitLine("$$();");
+        emitter.emitLine("$$(bool);");
 	emitter.emitLine("virtual ~$$();");
         // Output the methods.
         for (size_t i = 0; i < methods.size(); i++) {
@@ -161,8 +162,11 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include \"$$.hpp\"");
         emitter.emitLine("");
-        emitter.emitLine("$$::$$() {");
+        emitter.emitLine("$$::$$(bool isServerIn) : mIsServer(isServerIn) {");
+        emitter.emitLine(1, "if(mIsServer) {");
         emitter.emitLine(1, "mServer = new Rmi::RmiServer();");
+        emitter.emitLine("mServer->startServer();");             
+        emitter.emitLine(-1, "}");
         //TODO start server
         emitter.emitLine(-1, "}");
         emitter.emitLine("");
@@ -171,8 +175,10 @@ main(int argc, char *argv[]) {
         emitter.emitLine(1, "delete mServer;");
         emitter.emitLine(-1, "}");
         emitter.emitLine("void $$::stopServer() {");
-        emitter.emitLine(1, "mServer->stopServer();");
-        emitter.emitLine(-1, "}");
+        //emitter.emitLine(1, "if(mIsServer) {");
+        //emitter.emitLine(1, "mServer->stopServer();");             
+        //emitter.emitLine(-1, "}");
+        emitter.emitLine("}");
     }
 
     /*
@@ -241,13 +247,13 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 
         // Emit the constructor.
-        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {");
+        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : $$(false), mObjRef(objRefIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
-        emitter.emitLine("mRmiObj->connect();");
-        emitter.emitLine("stopServer();");
-	// The -1 as the first argument causes the indent level to be decremented
+        emitter.emitLine(1, "stopServer();");
+        emitter.emitLine("mRmiObj = new Rmi::Rmi();");
+        emitter.emitLine("mRmiObj->connectToServer();");
+       	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
 
