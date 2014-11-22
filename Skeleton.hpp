@@ -1,15 +1,9 @@
 #ifndef SKELETON_HPP
 #define SKELETON_HPP
 
-
-
 #include <string>
-#include "RmiServer.hpp"
-
 
 class Skeleton {
-
-    Rmi::RmiServer *mServer;
 
     public:
 
