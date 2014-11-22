@@ -1,7 +1,7 @@
 #include "RmiServer.hpp"
 #include <iostream>
 #include <sys/socket.h>
-//#include <sys/types.h>
+#include <sys/types.h>
 #include <sys/select.h>
 #include <sys/time.h>
 #include <netinet/in.h>
@@ -37,14 +37,18 @@ void getRequestFromClient (int sock)
     while(1) {
         std::cout<<"\n next \n";
         bzero(buffer,256);
-        n = read(sock, buffer,255);
+        //n = read(sock, buffer,255);
+        n = recv(sock, buffer, 255, 0);
         if (n < 0) {
             Error("ERROR reading from socket");
-        }
-        printf("to call method = %s\n", buffer);
+        } else if(n > 0) {
+            printf("to call method = %s\n", buffer);
         n = write(sock,"return value XYZ",18);
         if (n < 0) {
             Error("ERROR writing to socket");
+        }
+        } else {
+            break;
         }
     }
 }
@@ -147,6 +151,7 @@ void RmiServer::startServer() {
      std::vector<std::thread*> threadsList;
      std::thread *t;
      while (1) {
+         std::cout<<"\n Waiting for client\n";
          newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
          if (newsockfd < 0) {
              Error("ERROR on accept");
@@ -168,12 +173,13 @@ void RmiServer::startServer() {
          else close(newsockfd); //in parent. nothing to do with the new client socket
          */
      } /* end of while */
-     close(sockfd);
 
+     std::cout<<"\n Exiting \n";
      for(auto it = threadsList.begin(); it != threadsList.end(); it++) {
         t = *it; //(*it).join();
         t->join();
      }
+     close(sockfd);
 }
 
 void RmiServer::startServer2() {
