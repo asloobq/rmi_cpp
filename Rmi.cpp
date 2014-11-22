@@ -26,11 +26,11 @@ namespace Rmi {
 void Rmi::connectToServer() {
     std::cout<<"\n Connected \n";
 
-    int sockfd, portno, n;
+    int portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    char buffer[256];
+    //char buffer[256];
     //if (argc < 3) {
     //   fprintf(stderr,"usage %s hostname port\n", argv[0]);
     //   exit(0);
@@ -54,35 +54,84 @@ void Rmi::connectToServer() {
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
     //make function call
-    printf("Please enter the message: ");
-    bzero(buffer,256);
-    fgets(buffer,255,stdin);
-    n = write(sockfd,buffer,strlen(buffer));
-    if (n < 0) 
-         error("ERROR writing to socket");
-    bzero(buffer,256);
-    n = read(sockfd,buffer,255);
-    if (n < 0) 
-         error("ERROR reading from socket");
-    printf("%s\n",buffer);
-    close(sockfd);
+    //printf("Please enter the message: ");
+    //bzero(buffer,256);
+    //fgets(buffer,255,stdin);
+    //n = write(sockfd,buffer,strlen(buffer));
+    //if (n < 0) 
+    //     error("ERROR writing to socket");
+    //bzero(buffer,256);
+    //n = read(sockfd,buffer,255);
+    //if (n < 0) 
+    //     error("ERROR reading from socket");
+    //printf("%s\n",buffer);
+    //close(sockfd);
 
 }
 
-void Rmi::disconnect() { std::cout<<"\n Disconnected \n";}
+void Rmi::disconnect() { 
+    close(sockfd);
+    std::cout<<"\n Disconnected \n";
+}
 
 void Rmi::asyncCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) { 
-    std::cout<<"\n asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+    std::cout<<"\n In asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+
+    char buffer[256];
+    bzero(buffer,256);
+    sprintf(buffer, "\n asyncCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
+    int n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0) { 
+         error("ERROR writing to socket");
+    }
+
+    bzero(buffer, 256);
+    n = read(sockfd, buffer, 255);
+    if (n < 0) {
+         error("ERROR reading from socket");
+    }
+    printf("return value = %s\n",buffer);
 }
 
 
 int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
-    std::cout<<"\n Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+    std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+
+    char buffer[256];
+    bzero(buffer,256);
+    sprintf(buffer, "\n Rmi::intCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
+    int n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0) { 
+         error("ERROR writing to socket");
+    }
+
+    bzero(buffer, 256);
+    n = read(sockfd, buffer, 255);
+    if (n < 0) {
+         error("ERROR reading from socket");
+    }
+    printf("return value = %s\n",buffer);
+
     return -1;
 }
 
 std::string Rmi::stringCall(std::string, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
-    std::cout<<"\n Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+    std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+    
+    char buffer[256];
+    bzero(buffer,256);
+    sprintf(buffer, "\n Rmi::stringCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
+    int n = write(sockfd, buffer, strlen(buffer));
+    if (n < 0) { 
+         error("ERROR writing to socket");
+    }
+
+    bzero(buffer, 256);
+    n = read(sockfd, buffer, 255);
+    if (n < 0) {
+         error("ERROR reading from socket");
+    }
+    printf("return value = %s\n",buffer);
     return "";
 }
 

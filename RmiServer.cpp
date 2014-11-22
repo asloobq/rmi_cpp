@@ -28,23 +28,26 @@ max (int a, int b) {
  for each connection.  It handles all communication
  once a connnection has been established.
  *****************************************/
-void dostuff (int sock)
+void getRequestFromClient (int sock)
 {
-    std::cout<<"\n doStuff with "<<sock;
+    std::cout<<"\n Waiting to read from client = "<<sock<<"\n";
     int n;
-    char buffer[256];
+    char buffer[256]; //what can be the max size?
 
-    bzero(buffer,256);
-    n = read(sock,buffer,255);
-    if (n < 0) {
-        Error("ERROR reading from socket");
+    while(1) {
+        std::cout<<"\n next \n";
+        bzero(buffer,256);
+        n = read(sock, buffer,255);
+        if (n < 0) {
+            Error("ERROR reading from socket");
+        }
+        printf("to call method = %s\n", buffer);
+        n = write(sock,"return value XYZ",18);
+        if (n < 0) {
+            Error("ERROR writing to socket");
+        }
     }
-    printf("Here is the message: %s\n",buffer);
-    n = write(sock,"I got your message",18);
-    if (n < 0) { 
-        Error("ERROR writing to socket");
-    }
-} 
+}
 
 void
 chat (Client *mClientList, int mClientCount) {
@@ -148,9 +151,9 @@ void RmiServer::startServer() {
          if (newsockfd < 0) {
              Error("ERROR on accept");
          }
-         std::cout<<"\n New client connected = "<<newsockfd;
+         std::cout<<"\n New client connected = "<<newsockfd<<"\n";
 
-         t = new std::thread(dostuff, newsockfd);
+         t = new std::thread(getRequestFromClient, newsockfd);
          threadsList.push_back(t);
          /*
          pid = fork();

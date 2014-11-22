@@ -7,7 +7,7 @@
 namespace Rmi {
 
 class Rmi {
-
+    int sockfd;
     public:
         void connectToServer();
         void disconnect();
