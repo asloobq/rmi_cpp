@@ -12,6 +12,18 @@ Skeleton::getObjectReference() const {
     return "an_object_ref";
 }
 
+void
+Skeleton::startServer() {
+    mServer = new Rmi::RmiServer();
+    mServer->startServer();
+}
+
+void
+Skeleton::stopServer() {
+    if(mServer) {
+        mServer->stopServer();
+    }
+}
 
 
 /*

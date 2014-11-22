@@ -366,14 +366,13 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 
         // Emit the constructor.
-        emitter.emitLine("$$_skel::$$_skel($$ *interfaceIn) : mInterface(interfaceIn) {}");
+        emitter.emitLine("$$_skel::$$_skel($$ *interfaceIn) : mInterface(interfaceIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        //emitter.emitLine(1,
-        // "std::cerr << \"'$$_skel::$$_skel($$ *)' needs to be filled in.\" << std::endl;");
+        emitter.emitLine(1,"startServer();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
-        //emitter.emitLine(-1, "}");
+        emitter.emitLine(-1, "}");
         emitter.emitLine("");
         // Emit the getObjectReference method
         emitter.emitLine("std::string $$_skel::getObjectReference() const {");

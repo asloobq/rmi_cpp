@@ -4,14 +4,19 @@
 
 
 #include <string>
-
+#include "RmiServer.hpp"
 
 
 class Skeleton {
 
+    Rmi::RmiServer *mServer;
+
     public:
 
         std::string getObjectReference() const;
+        void startServer();
+        void stopServer();
+        virtual ~Skeleton() { stopServer(); }
 };
 
 
