@@ -51,7 +51,6 @@ getRequestFromClient (int sock)
             //verify length
             std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
 
-
             //read length of objRef
             int objRefLen;
             int ret = recv(sock, (char*) &objRefLen, 4, 0);
@@ -65,6 +64,49 @@ getRequestFromClient (int sock)
                 if(ret == objRefLen) {
                     std::string objRefStr(&objRef[0], objRefLen);
                     std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
+
+                    //read length of the method name
+                    int methodNameLen;
+                    int ret = recv(sock, (char*) &methodNameLen, 4, 0);
+
+                    if(ret == 4) {
+                        //read method name
+                        std::cout<<"\nsock = "<<sock<<" methodNameLen = "<<methodNameLen;
+                        std::vector<char> methodName(methodNameLen);
+                        ret = recv(sock, &methodName[0], methodNameLen, 0);
+
+                        if(ret == methodNameLen) {
+                            std::cout<<"\nsock = "<<sock<<" methodName = "<<&methodName[0];
+
+                            //method sign length
+                            int methodSignLen;
+                            int ret = recv(sock, (char*) &methodSignLen, 4, 0);
+                            if(ret == 4) {
+                                //read method sign
+                                std::cout<<"\nsock = "<<sock<<" methodSignLen = "<<methodSignLen;
+                                std::vector<char> methodSign(methodSignLen);
+                                ret = recv(sock, &methodSign[0], methodSignLen, 0);
+
+                                if(ret == methodSignLen) {
+                                    std::cout<<"\nsock = "<<sock<<" methodSign = "<<&methodSign[0];                               
+                                } else {
+                                    printError(ret, 4);
+                                    return;
+                                }
+                            } else {
+                                printError(ret, 4);
+                                return;
+                            }
+                        } else {
+                            printError(ret, 4);
+                            return;
+                        }
+
+                    } else {
+                        printError(ret, 4);
+                        return;
+                    }
+
 
                     //read remaining bytes
                     unsigned int remLength = totalLength - objRefLen;

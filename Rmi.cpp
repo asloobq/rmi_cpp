@@ -133,10 +133,23 @@ void Rmi::asyncCall(std::string objRefIn, std::string methodNameIn, std::string 
 int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
     std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
+    //add method sign
+    unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
+    std::string methodSignPacket((char *) &methodSignLen, 4);
+    methodSignPacket.append(methodSignIn);
+
+    //add method name
+    unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
+    std::string methodNamePacket((char *) &methodNameLen, 4);
+    methodNamePacket.append(methodNameIn);
+
     //add object ref
     unsigned int objRefLen = static_cast<int>(objRefIn.length());
     std::string objRefPacket((char *) &objRefLen, 4);
     objRefPacket.append(objRefIn);
+
+    objRefPacket.append(methodNamePacket);
+    objRefPacket.append(methodSignPacket);
 
 //    std::ostringstream obuffer("");
 //    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
@@ -152,14 +165,29 @@ int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string met
     return -1;
 }
 
-std::string Rmi::stringCall(std::string, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
-    return "";
+std::string Rmi::stringCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
+//    return "";
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
-    
-    std::ostringstream obuffer("");
-    obuffer << "\nRmi::stringCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
-    std::string packet = obuffer.str();
 
+    //add method sign
+    unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
+    std::string methodSignPacket((char *) &methodSignLen, 4);
+    methodSignPacket.append(methodSignIn);
+
+    //add method name
+    unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
+    std::string methodNamePacket((char *) &methodNameLen, 4);
+    methodNamePacket.append(methodNameIn);
+
+    //add object ref
+    unsigned int objRefLen = static_cast<int>(objRefIn.length());
+    std::string objRefPacket((char *) &objRefLen, 4);
+    objRefPacket.append(objRefIn);
+
+    objRefPacket.append(methodNamePacket);
+    objRefPacket.append(methodSignPacket);
+
+    std::string packet = objRefPacket;
     connectToServer();
     std::string retVal = call(sockfd, packet);
     std::cout<<"\n return value = "<<retVal;
