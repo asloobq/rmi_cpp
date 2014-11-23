@@ -11,6 +11,7 @@ class Skeleton {
         void startServer();
         void stopServer();
         virtual ~Skeleton() { stopServer(); }
+        virtual int callIntMethod(std::string, int);
 };
 
 

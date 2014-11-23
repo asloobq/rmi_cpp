@@ -20,9 +20,9 @@ class Rmi {
         // Arg2 method name '<method name>'
         // Arg3 method param types '<type 1> <type 2>'
         // Arg4 method arguments list
-        void asyncCall(std::string, std::string, std::string, Params&);
-        int intCall(std::string, std::string, std::string, Params&);
-        std::string stringCall(std::string, std::string, std::string, Params&);
+        void asyncCall(std::string, int, std::string, std::string, Params&);
+        int intCall(std::string, int, std::string, std::string, Params&);
+        std::string stringCall(std::string, int, std::string, std::string, Params&);
 
 };
 

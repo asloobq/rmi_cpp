@@ -36,7 +36,7 @@ printError(int bytesRead, int actualLength) {
  once a connnection has been established.
  *****************************************/
 void
-getRequestFromClient (int sock)
+getRequestFromClient (int sock, Skeleton *skelIn)
 {
     std::cout<<"\nsock = "<<sock<<" Waiting to read";
     unsigned int totalLength;
@@ -65,7 +65,18 @@ getRequestFromClient (int sock)
                     std::string objRefStr(&objRef[0], objRefLen);
                     std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
 
-                    //read length of the method name
+                    //read method Id
+                    int methodId;
+                    int ret = recv(sock, (char*) &methodId, 4, 0);
+
+                    if(ret == 4) {
+                        std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
+                        int result = skelIn->callIntMethod(objRefStr, methodId);
+                    } else {
+                        printError(ret, 4);
+                        return;
+                    }
+                    /*//read length of the method name
                     int methodNameLen;
                     int ret = recv(sock, (char*) &methodNameLen, 4, 0);
 
@@ -105,7 +116,7 @@ getRequestFromClient (int sock)
                     } else {
                         printError(ret, 4);
                         return;
-                    }
+                    }*/
 
 
                     //read remaining bytes
@@ -172,6 +183,13 @@ Skeleton::getObjectReference() const {
     return "an_object_ref";
 }
 
+int 
+Skeleton::callIntMethod(std::string, int) {
+    std::cerr << "'Skeleton::callIntMethod(std::string, int)' needs to be filled in." << std::endl;
+    return -1;
+}
+
+
 void
 Skeleton::startServer() {
 //    mServer = new Rmi::RmiServer();
@@ -208,7 +226,7 @@ Skeleton::startServer() {
          }
          std::cout<<"\n New client connected = "<<newsockfd<<"\n";
 
-         t = new std::thread(getRequestFromClient, newsockfd);
+         t = new std::thread(getRequestFromClient, newsockfd, this);
          threadsList.push_back(t);
      } // end of while
 

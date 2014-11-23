@@ -283,19 +283,19 @@ main(int argc, char *argv[]) {
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->intCall(mObjRef,\"%s\", \"%s\",*param);", 
-                                  methods[i].name.c_str(), sign.c_str());
+                emitter.emitLineF("result = mRmiObj->intCall(mObjRef, %d, \"%s\", \"%s\",*param);", 
+                                  i, methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
                 emitter.emitLine("std::string result;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef,\"%s\", \"%s\", *param);",
-                                  methods[i].name.c_str(), sign.c_str());
+                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef, %d, \"%s\", \"%s\", *param);",
+                                  i, methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else {
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef,\"%s\", \"%s\", *param);",
-                                  methods[i].name.c_str(), sign.c_str());
+                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param);",
+                                  i, methods[i].name.c_str(), sign.c_str());
                 //assert(false);
             }
             emitter.emitLine(-1, "}");
@@ -341,6 +341,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("explicit $$_skel($$ *);");
         emitter.emitLine("");
         emitter.emitLine("virtual std::string getObjectReference() const;");
+        emitter.emitLine("int callIntMethod(std::string, int);");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -382,6 +383,22 @@ main(int argc, char *argv[]) {
         emitter.emitLine("return ref;");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
+        emitter.emitLine(-1, "}");
+        //callIntMethod(std::string, int)
+        emitter.emitLine("");
+        emitter.emitLine("int $$_skel::callIntMethod(std::string objRefIn, int methodIdIn) {");
+        emitter.emitLine(1, "");
+        emitter.emitLine("int result = -1;");
+        emitter.emitLine("switch(methodIdIn) {");
+        emitter.increment_indent_level();
+        for (size_t i = 0; i < methods.size(); i++) {
+            emitter.emitLineF("case %d: std::cout<<\"\\nCalling method %s\";", i, methods[i].name.c_str());
+            emitter.emitLine("break;");
+        }
+        emitter.emitLine("default: assert(false);");
+        emitter.decrement_indent_level();
+        emitter.emitLine("}");
+        emitter.emitLine("return result;");
         emitter.emitLine(-1, "}");
     }
 }
