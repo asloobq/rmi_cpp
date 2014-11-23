@@ -13,6 +13,8 @@ class DevInterfaceImpl : public DevInterface {
     public:
         virtual int my_method1(int, const string &, int);
         virtual string my_method2(int, int);
+        virtual int my_method3(int p1, const std::vector<int> &p2, int p3);
+        virtual void my_method4(int p1, const std::vector<string> &p2, const std::string &p3);
 };
 
 int
@@ -30,7 +32,14 @@ DevInterfaceImpl::my_method2(int arg1, int arg2) {
     return result;
 }
 
+int
+DevInterfaceImpl::my_method3(int p1, const std::vector<int> &p2, int p3) {
+    return -1;
+}
 
+void
+DevInterfaceImpl::my_method4(int p1, const std::vector<string> &p2, const std::string &p3) {
+}
 
 int
 main() {

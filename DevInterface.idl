@@ -1,5 +1,5 @@
 DevInterface
-2
+4
 int
 my_method1
 3
@@ -11,3 +11,15 @@ my_method2
 2
 int
 int
+int
+my_method3
+3
+int
+array of int
+int
+async
+my_method4
+3
+int
+array of string
+string

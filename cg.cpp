@@ -120,6 +120,7 @@ main(int argc, char *argv[]) {
         emitter.emitLineF("#define %s_HPP", uc_intf_name.c_str());
         emitter.emitLine("");
         emitter.emitLine("#include <string>");
+        emitter.emitLine("#include <vector>");
         //emitter.emitLine("#include \"RmiServer.hpp\"");
         emitter.emitLine("");
         emitter.emitLine("class $$ {");
@@ -212,7 +213,7 @@ main(int argc, char *argv[]) {
         for (size_t i = 0; i < methods.size(); i++) {
             // cout << "    method name: " << methods[i].name << endl;
             emitter.emitLineStartF("virtual %s %s(",
-             methods[i].return_type == "int" ? "int" : "std::string",
+             methods[i].return_type == "int" ? "int" : methods[i].return_type == "async" ? "void" : "std::string",
              methods[i].name.c_str());
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(");");
@@ -273,7 +274,7 @@ main(int argc, char *argv[]) {
             }
             // cout << "    method name: " << methods[i].name << endl;
             emitter.emitLineStartF("%s $$_stub::%s(",
-             methods[i].return_type == "int" ? "int" : "std::string",
+             methods[i].return_type == "int" ? "int" : methods[i].return_type == "async" ? "void" : "std::string",
              methods[i].name.c_str());
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(") {");
@@ -323,7 +324,7 @@ main(int argc, char *argv[]) {
                 emitter.emitLine("return result;");
             } else {
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
+                emitter.emitLineF("mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
                                   i, methods[i].name.c_str(), sign.c_str());
                 //assert(false);
             }
@@ -450,7 +451,9 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("bufPtr += len;");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d.c_str();", paramNo, paramNo);
                 } else if((*it).compare("array of int") == 0) {
+                    emitter.emitLineF("std::vector<int> p%d;", paramNo);
                 } else if((*it).compare("array of string") == 0) {
+                    emitter.emitLineF("std::vector<std::string> p%d;", paramNo);
                 }
             }
 
@@ -490,14 +493,11 @@ emit_params(Emitter *emitter, const vector<string> &param_types) {
             emitter->emitString("int ");
         } else if (param_types[i] == "string") {
             emitter->emitString("const std::string &");
-        } 
-        /*if (param_types[i] == "array of int") {
-            emitter->emitString("const std::vector &");
+        } else if (param_types[i] == "array of int") {
+            emitter->emitString("const std::vector<int> &");
         } else if (param_types[i] == "array of string") {
-            emitter->emitString("const std::vector &");
-        }
-        */
-        else {
+            emitter->emitString("const std::vector<std::string> &");
+        } else {
             std::cout<<"\n emit_params = \""<<param_types[i]<<"\" i = "<<i<<std::endl;
             assert(false);
         }
