@@ -19,53 +19,92 @@ max (int a, int b) {
         return a > b ? a : b;
 }
 
+void
+printError(int bytesRead, int actualLength) {
+    if (bytesRead == 0) {
+        std::cerr<<"\n Socket connection closed";
+    } else if (bytesRead < 0) {
+        std::cerr<<"\n ERROR reading from socket";
+    } else {
+        std::cout<<"\n Total bytes read ="<<bytesRead<<" actualLength = "<<actualLength;
+    }
+}
+
 /*********** DOSTUFF() ******************
  There is a separate instance of this function 
  for each connection.  It handles all communication
  once a connnection has been established.
  *****************************************/
-void getRequestFromClient (int sock)
+void
+getRequestFromClient (int sock)
 {
-    std::cout<<"\n Waiting to read from client = "<<sock<<"\n";
-    unsigned int length;
-
+    std::cout<<"\nsock = "<<sock<<" Waiting to read";
+    unsigned int totalLength;
+    //bad code with lots of ifs
 //    while(1) {
 //        std::cout<<"\n next \n";
 
         //read the size of packet
-        int ret = recv(sock, (char*) &length, 4, 0);
+        int ret = recv(sock, (char*) &totalLength, 4, 0);
         //check if 4 bytes read properly
         if(ret == 4) {
             //verify length
-            std::cout<<"\n length = "<<length<<"\n";
+            std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
 
-            //read remaining bytes
-            std::vector<char> data(length);
-            ret = recv(sock, &data[0], length, 0);
 
-            if(ret == length) {
-                std::string dataStr(&data[0], length);
-                ret = write(sock,"return value XYZ", 18);
+            //read length of objRef
+            int objRefLen;
+            int ret = recv(sock, (char*) &objRefLen, 4, 0);
 
-                if (ret < 0) {
-                     Error("ERROR writing to socket");
+            if(ret == 4) {
+                //read obj ref
+                std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
+                std::vector<char> objRef(objRefLen);
+                ret = recv(sock, &objRef[0], objRefLen, 0);
+
+                if(ret == objRefLen) {
+                    std::string objRefStr(&objRef[0], objRefLen);
+                    std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
+
+                    //read remaining bytes
+                    unsigned int remLength = totalLength - objRefLen;
+                    if(remLength == 0) {
+                        std::cout<<"\nsock = "<<sock<<" Nothing to read";
+                        return;
+                    }
+                    std::vector<char> data(remLength);
+                    ret = recv(sock, &data[0], remLength, 0);
+
+                    if(ret == remLength) {
+                        std::string dataStr(&data[0], remLength);
+                        std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
+
+                        /*ret = write(sock,"return value XYZ", 18);
+                        if (ret == 18) {
+                        } else {
+                            if (ret < 0) {
+                                Error("ERROR writing to socket");
+                            } else {
+                                std::cout<<"total bytes written ="<<ret<<"\n";
+                                std::cout<<"to call method = "<<&data[0]<<"\n";
+                            }
+                            return;
+                        }*/      
+
+                    } else {
+                        printError(ret, remLength);
+                        return;
+                    } 
                 } else {
-                    std::cout<<"total bytes read ="<<length<<"\n";
-                    std::cout<<"to call method = "<<&data[0]<<"\n";
+                    printError(ret, objRefLen); 
+                    return;
                 }
-
             } else {
-                std::cout<<"\n incorrect amount of data read "<<ret<<" actual length = "<<length<<"\n";
-                std::cout<<"\n incorrect data = "<<&data[0];
+                printError(ret, 4);
                 return;
             }
-        } else if (ret > 0 ) {
-            std::cout<<"\n incorrect length read "<<ret<<"\n";
-            return;
-        } else if (ret == 0) {
-            std::cout<<"\n Client socket closed = "<<sock;
         } else {
-            Error("ERROR reading from socket");
+            printError(ret, 4);
         }
         //n = recv(sock, buffer, 255, 0);
         /*if (n < 0) {
@@ -81,7 +120,7 @@ void getRequestFromClient (int sock)
             break;
         }*/
   //  }
-    std::cout<<"\n Exiting sock = "<<sock;
+    std::cout<<"\nsock = "<<sock<<" Exiting";
 }
 
 
@@ -120,7 +159,7 @@ Skeleton::startServer() {
      std::vector<std::thread*> threadsList;
      std::thread *t;
      while (1) {
-         std::cout<<"\n Waiting for client\n";
+         std::cout<<"\n Waiting for clients to connect";
          newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
          if (newsockfd < 0) {
              Error("ERROR on accept");
@@ -131,7 +170,7 @@ Skeleton::startServer() {
          threadsList.push_back(t);
      } // end of while
 
-     std::cout<<"\n Exiting \n";
+     std::cout<<"\n Exiting";
      for(auto it = threadsList.begin(); it != threadsList.end(); it++) {
         t = *it;
         t->join();

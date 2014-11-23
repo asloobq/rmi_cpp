@@ -25,7 +25,7 @@ namespace Rmi {
 //}
 
 void Rmi::connectToServer() {
-    std::cout<<"\n Connected \n";
+    std::cout<<"\n Connecting \n";
 
     int portno, n;
     struct sockaddr_in serv_addr;
@@ -88,21 +88,22 @@ Rmi::call(int sockfd, std::string packet) {
     std::cout<<"Sending out "<<data.c_str()<<"\n";
     std::cout <<"size = "<<data.length()<<"\n";
 
-    connectToServer();
+    std::cout << "\n Waiting to write";
     int n = write(sockfd, data.c_str(), static_cast<int>(data.length()));
     if (n < 0) { 
          error("ERROR writing to socket");
     }
 
+    /*std::cout<<"\n Waiting for results";
     char buffer[256];
     bzero(buffer, 256);
     n = read(sockfd, buffer, 255);
     if (n < 0) {
          error("ERROR reading from socket");
-    }
+    }*/
 
     std::ostringstream retBuff("") ;
-    retBuff << buffer;
+    //retBuff << buffer;
     return retBuff.str();
 }
 
@@ -130,13 +131,19 @@ void Rmi::asyncCall(std::string objRefIn, std::string methodNameIn, std::string 
 
 
 int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
-    return -1;
     std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
-    std::ostringstream obuffer("");
-    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
-    std::string packet = obuffer.str();
+    //add object ref
+    unsigned int objRefLen = static_cast<int>(objRefIn.length());
+    std::string objRefPacket((char *) &objRefLen, 4);
+    objRefPacket.append(objRefIn);
 
+//    std::ostringstream obuffer("");
+//    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
+
+
+//    std::string packet = obuffer.str();
+    std::string packet = objRefPacket;
     connectToServer();
     std::string retVal = call(sockfd, packet);
     std::cout<<"\n return value = "<<retVal;
@@ -146,6 +153,7 @@ int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string met
 }
 
 std::string Rmi::stringCall(std::string, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
+    return "";
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
     
     std::ostringstream obuffer("");
