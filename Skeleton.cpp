@@ -46,6 +46,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
 
         //read the size of packet
         int ret = recv(sock, (char*) &totalLength, 4, 0);
+        unsigned int remLength = totalLength;
         //check if 4 bytes read properly
         if(ret == 4) {
             //verify length
@@ -56,12 +57,14 @@ getRequestFromClient (int sock, Skeleton *skelIn)
             int ret = recv(sock, (char*) &objRefLen, 4, 0);
 
             if(ret == 4) {
+                remLength -= 4;
                 //read obj ref
                 std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
                 std::vector<char> objRef(objRefLen);
                 ret = recv(sock, &objRef[0], objRefLen, 0);
 
                 if(ret == objRefLen) {
+                    remLength -= objRefLen;
                     std::string objRefStr(&objRef[0], objRefLen);
                     std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
 
@@ -70,12 +73,31 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                     int ret = recv(sock, (char*) &methodId, 4, 0);
 
                     if(ret == 4) {
+                        remLength -= 4;
                         std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
-                        int result = skelIn->callIntMethod(objRefStr, methodId);
+
+                        //read remaining bytes
+                        if(remLength == 0) {
+                            std::cout<<"\nsock = "<<sock<<" Nothing to read";
+                            return;
+                        }
+                        std::vector<char> data(remLength);
+                        ret = recv(sock, &data[0], remLength, 0);
+
+                        if(ret == remLength) {
+                            std::string dataStr(&data[0], remLength);
+                            std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
+                            int result = skelIn->callIntMethod(objRefStr, methodId, data);
+
+                        } else {
+                            printError(ret, remLength);
+                            return;
+                        }
                     } else {
                         printError(ret, 4);
                         return;
                     }
+
                     /*//read length of the method name
                     int methodNameLen;
                     int ret = recv(sock, (char*) &methodNameLen, 4, 0);
@@ -116,7 +138,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                     } else {
                         printError(ret, 4);
                         return;
-                    }*/
+                    }
 
 
                     //read remaining bytes
@@ -132,7 +154,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                         std::string dataStr(&data[0], remLength);
                         std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
 
-                        /*ret = write(sock,"return value XYZ", 18);
+                        ret = write(sock,"return value XYZ", 18);
                         if (ret == 18) {
                         } else {
                             if (ret < 0) {
@@ -142,12 +164,12 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                                 std::cout<<"to call method = "<<&data[0]<<"\n";
                             }
                             return;
-                        }*/      
+                        }
 
                     } else {
                         printError(ret, remLength);
                         return;
-                    } 
+                    } */
                 } else {
                     printError(ret, objRefLen); 
                     return;
@@ -184,8 +206,8 @@ Skeleton::getObjectReference() const {
 }
 
 int 
-Skeleton::callIntMethod(std::string, int) {
-    std::cerr << "'Skeleton::callIntMethod(std::string, int)' needs to be filled in." << std::endl;
+Skeleton::callIntMethod(std::string, int, std::vector<char>) {
+    std::cerr << "'Skeleton::callIntMethod(std::string, int, std::vector<char>)' needs to be filled in." << std::endl;
     return -1;
 }
 

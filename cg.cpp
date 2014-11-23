@@ -341,7 +341,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("explicit $$_skel($$ *);");
         emitter.emitLine("");
         emitter.emitLine("virtual std::string getObjectReference() const;");
-        emitter.emitLine("int callIntMethod(std::string, int);");
+        emitter.emitLine("int callIntMethod(std::string, int, std::vector<char>);");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -386,7 +386,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine(-1, "}");
         //callIntMethod(std::string, int)
         emitter.emitLine("");
-        emitter.emitLine("int $$_skel::callIntMethod(std::string objRefIn, int methodIdIn) {");
+        emitter.emitLine("int $$_skel::callIntMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn) {");
         emitter.emitLine(1, "");
         emitter.emitLine("int result = -1;");
         emitter.emitLine("switch(methodIdIn) {");

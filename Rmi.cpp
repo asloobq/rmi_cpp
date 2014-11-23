@@ -152,8 +152,8 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
     std::string methodIdPacket((char *) &methodIdIn, 4);
     objRefPacket.append(methodIdPacket);
 
-//    objRefPacket.append(methodNamePacket);
-//    objRefPacket.append(methodSignPacket);
+    objRefPacket.append(methodNamePacket);
+    objRefPacket.append(methodSignPacket);
 
 //    std::ostringstream obuffer("");
 //    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
@@ -192,8 +192,8 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
     std::string methodIdPacket((char *) &methodIdIn, 4);
     objRefPacket.append(methodIdPacket);
 
-//    objRefPacket.append(methodNamePacket);
-//    objRefPacket.append(methodSignPacket);
+    objRefPacket.append(methodNamePacket);
+    objRefPacket.append(methodSignPacket);
 
     std::string packet = objRefPacket;
     connectToServer();

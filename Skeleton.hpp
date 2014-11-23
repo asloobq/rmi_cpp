@@ -2,6 +2,7 @@
 #define SKELETON_HPP
 
 #include <string>
+#include <vector>
 
 class Skeleton {
 
@@ -11,7 +12,7 @@ class Skeleton {
         void startServer();
         void stopServer();
         virtual ~Skeleton() { stopServer(); }
-        virtual int callIntMethod(std::string, int);
+        virtual int callIntMethod(std::string, int, std::vector<char>);
 };
 
 
