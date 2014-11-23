@@ -180,7 +180,7 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
 
 std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
                             Params& paramsListIn, std::string bufferIn) {
-    //return "";
+    return "";
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     /*//add method sign

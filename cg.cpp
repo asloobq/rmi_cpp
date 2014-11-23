@@ -134,7 +134,7 @@ main(int argc, char *argv[]) {
         // Output the methods.
         for (size_t i = 0; i < methods.size(); i++) {
             emitter.emitLineStartF("virtual %s %s(",
-             methods[i].return_type == "int" ? "int" : "std::string",
+             methods[i].return_type == "int" ? "int" : methods[i].return_type == "async" ? "void" : "std::string",
              methods[i].name.c_str());
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(") = 0;");
@@ -454,6 +454,21 @@ main(int argc, char *argv[]) {
                 }
             }
 
+            //call the method using the arguments created
+            if(methods[i].return_type.compare("int") == 0) {
+                emitter.emitStringF("result = mInterface->%s(", methods[i].name.c_str());
+            } else {
+                emitter.emitStringF("mInterface->%s(", methods[i].name.c_str());
+            }
+
+            if(methods[i].param_types.size() > 0) {
+                size_t arg = 1;
+                emitter.emitStringF("p%d", arg++);
+                for(; arg < paramNo; arg++) {
+                    emitter.emitStringF(", p%d", arg);
+                }
+            }
+            emitter.emitString(");");
             emitter.emitLine(-1, "}");
             emitter.emitLine("break;");
         }
@@ -475,7 +490,15 @@ emit_params(Emitter *emitter, const vector<string> &param_types) {
             emitter->emitString("int ");
         } else if (param_types[i] == "string") {
             emitter->emitString("const std::string &");
-        } else {
+        } 
+        /*if (param_types[i] == "array of int") {
+            emitter->emitString("const std::vector &");
+        } else if (param_types[i] == "array of string") {
+            emitter->emitString("const std::vector &");
+        }
+        */
+        else {
+            std::cout<<"\n emit_params = \""<<param_types[i]<<"\" i = "<<i<<std::endl;
             assert(false);
         }
         emitter->emitStringF("p%d", int(i) + 1);
