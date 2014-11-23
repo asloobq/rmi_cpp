@@ -107,10 +107,11 @@ Rmi::call(int sockfd, std::string packet) {
     return retBuff.str();
 }
 
-void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) { 
+void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
+                    Params& paramsListIn, std::string bufferIn ) { 
     std::cout<<"\n In asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
-    char buffer[256];
+    /*char buffer[256];
     bzero(buffer,256);
     sprintf(buffer, "\n asyncCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
 
@@ -126,25 +127,26 @@ void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodName
          error("ERROR reading from socket");
     }
     printf("return value = %s\n",buffer);
-    disconnect();
+    disconnect();*/
 }
 
 
-int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
+int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
+                 Params& paramsListIn, std::string bufferIn) {
     std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     //add method sign
-    unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
-    std::string methodSignPacket((char *) &methodSignLen, 4);
-    methodSignPacket.append(methodSignIn);
+    //unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
+    //std::string methodSignPacket((char *) &methodSignLen, 4);
+    //methodSignPacket.append(methodSignIn);
 
     //add method name
-    unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
-    std::string methodNamePacket((char *) &methodNameLen, 4);
-    methodNamePacket.append(methodNameIn);
+    //unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
+    //std::string methodNamePacket((char *) &methodNameLen, 4);
+    //methodNamePacket.append(methodNameIn);
 
     //add object ref
-    unsigned int objRefLen = static_cast<int>(objRefIn.length());
+    unsigned int objRefLen = objRefIn.length();
     std::string objRefPacket((char *) &objRefLen, 4);
     objRefPacket.append(objRefIn);
 
@@ -152,8 +154,15 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
     std::string methodIdPacket((char *) &methodIdIn, 4);
     objRefPacket.append(methodIdPacket);
 
-    objRefPacket.append(methodNamePacket);
-    objRefPacket.append(methodSignPacket);
+    unsigned int bufLen = bufferIn.length();
+    std::string bufPacket((char *) &bufLen, 4);
+    bufPacket.append(bufferIn);
+    //std::cout<<"\n bufPacket length = "<<bufPacket.length();
+    //printf("\n %d %d %s %d", bufferIn.c_str(), bufferIn.c_str() + 4, bufferIn.c_str() + 8, bufferIn.c_str() + 20);
+
+    //objRefPacket.append(methodNamePacket);
+    //objRefPacket.append(methodSignPacket);
+    objRefPacket.append(bufPacket);
 
 //    std::ostringstream obuffer("");
 //    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
@@ -169,11 +178,12 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
     return -1;
 }
 
-std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
-//    return "";
+std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
+                            Params& paramsListIn, std::string bufferIn) {
+    //return "";
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
-    //add method sign
+    /*//add method sign
     unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
     std::string methodSignPacket((char *) &methodSignLen, 4);
     methodSignPacket.append(methodSignIn);
@@ -181,7 +191,7 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
     //add method name
     unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
     std::string methodNamePacket((char *) &methodNameLen, 4);
-    methodNamePacket.append(methodNameIn);
+    methodNamePacket.append(methodNameIn);*/
 
     //add object ref
     unsigned int objRefLen = static_cast<int>(objRefIn.length());
@@ -192,8 +202,13 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
     std::string methodIdPacket((char *) &methodIdIn, 4);
     objRefPacket.append(methodIdPacket);
 
-    objRefPacket.append(methodNamePacket);
-    objRefPacket.append(methodSignPacket);
+    unsigned int bufLen = bufferIn.length();
+    std::string bufPacket((char *) &bufLen, 4);
+    bufPacket.append(bufferIn);
+
+    //objRefPacket.append(methodNamePacket);
+    //objRefPacket.append(methodSignPacket);
+    objRefPacket.append(bufPacket);
 
     std::string packet = objRefPacket;
     connectToServer();

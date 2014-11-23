@@ -242,7 +242,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include \"$$_stub.hpp\"");
         emitter.emitLine("#include <iostream>");
-        emitter.emitLine("#include <assert.h>");
+        emitter.emitLine("#include <cassert>");
+        emitter.emitLine("#include <cstring>");
         emitter.emitLine("#include \"Params.hpp\"");
         emitter.emitLine("");
 
@@ -279,22 +280,50 @@ main(int argc, char *argv[]) {
             // KEC: emitter.emitLine(1, "assert(false);");
             //Emit method body
             emitter.increment_indent_level();
+            //Marshall the arguments
+            emitter.emitLine("char *buf = new char[10000];"); //should be dynamic
+            emitter.emitLine("char *bufPtr = buf;");
+            emitter.emitLine("size_t len;");
+            int paramNo = 1;
+            for(std::vector<string>::iterator it = methods[i].param_types.begin();
+                it != methods[i].param_types.end(); it++, paramNo++) {
+                if((*it).compare("int") == 0) {
+                    emitter.emitLineF("memcpy(bufPtr, &p%d, sizeof(p%d));", paramNo, paramNo);
+                    emitter.emitLineF("bufPtr += sizeof(p%d);", paramNo);
+                } else if((*it).compare("string") == 0) {
+                    //copy length of the string
+                    emitter.emitLineF("len = p%d.length();", paramNo);
+                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
+                    emitter.emitLine("bufPtr += sizeof(len);");
+                    //copy string itself
+                    emitter.emitLineF("memcpy(bufPtr, p%d.c_str(), len);", paramNo, paramNo);
+                    emitter.emitLineF("bufPtr += len;", paramNo);
+                } else if((*it).compare("array of int") == 0) {
+                } else if((*it).compare("array of string") == 0) {
+                } else {
+                    assert(false);
+                }
+            }
+
+            emitter.emitLine("std::string bufStr(buf, bufPtr - buf);");
+            emitter.emitLine("delete[] buf;");
+
             std::string sign = createMethodSignature(methods[i]);
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->intCall(mObjRef, %d, \"%s\", \"%s\",*param);", 
+                emitter.emitLineF("result = mRmiObj->intCall(mObjRef, %d, \"%s\", \"%s\",*param, bufStr);", 
                                   i, methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
                 emitter.emitLine("std::string result;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef, %d, \"%s\", \"%s\", *param);",
+                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
                                   i, methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else {
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param);",
+                emitter.emitLineF("result = mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
                                   i, methods[i].name.c_str(), sign.c_str());
                 //assert(false);
             }
@@ -363,7 +392,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include \"$$_skel.hpp\"");
         emitter.emitLine("#include <iostream>");
-        emitter.emitLine("#include <assert.h>");
+        emitter.emitLine("#include <cassert>");
+        emitter.emitLine("#include <cstring>");
         emitter.emitLine("");
 
         // Emit the constructor.
@@ -389,10 +419,42 @@ main(int argc, char *argv[]) {
         emitter.emitLine("int $$_skel::callIntMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn) {");
         emitter.emitLine(1, "");
         emitter.emitLine("int result = -1;");
+        emitter.emitLine("char *buf = dataIn.data();");
+        emitter.emitLine("char *bufPtr = buf;"); //hack
+        emitter.emitLine("unsigned int len;");
+        emitter.emitLine("unsigned int totalLen;");
+        emitter.emitLine("memcpy(&totalLen, bufPtr, sizeof (int));");
+        emitter.emitLine("bufPtr += sizeof (int);");
+        emitter.emitLine("std::cout<<std::endl<<\" total length of packet = \"<<totalLen;");
+
         emitter.emitLine("switch(methodIdIn) {");
         emitter.increment_indent_level();
         for (size_t i = 0; i < methods.size(); i++) {
             emitter.emitLineF("case %d: std::cout<<\"\\nCalling method %s\";", i, methods[i].name.c_str());
+            emitter.emitLine(1, "{");
+            //unmarshall the arguments
+            int paramNo = 1;
+            for(std::vector<string>::iterator it = methods[i].param_types.begin();
+                it != methods[i].param_types.end(); it++, paramNo++) {
+                if((*it).compare("int") == 0) {
+                    emitter.emitLineF("int p%d;", paramNo);
+                    emitter.emitLineF("memcpy(&p%d, bufPtr, sizeof (int));");
+                    emitter.emitLine("bufPtr += sizeof (int);");
+                    emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d;", paramNo, paramNo);
+                } else if((*it).compare("string") == 0) {
+                    //read length of string
+                    emitter.emitLine("memcpy(&len, bufPtr, sizeof (int));");
+                    emitter.emitLine("bufPtr += sizeof (int);");
+                    emitter.emitLineF("std::cout<<std::endl<<\"length of string = \"<<len;");
+                    emitter.emitLineF("std::string p%d(bufPtr, len);", paramNo);
+                    emitter.emitLine("bufPtr += len;");
+                    emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d.c_str();", paramNo, paramNo);
+                } else if((*it).compare("array of int") == 0) {
+                } else if((*it).compare("array of string") == 0) {
+                }
+            }
+
+            emitter.emitLine(-1, "}");
             emitter.emitLine("break;");
         }
         emitter.emitLine("default: assert(false);");
