@@ -11,6 +11,7 @@ class Rmi {
     public:
         void connectToServer();
         void disconnect();
+        std::string call(int, std::string);
         // Probably not the right way to define methods but 
         // doing it just for the understanding
 

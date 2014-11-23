@@ -1,5 +1,6 @@
 #include "Rmi.hpp"
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -74,12 +75,45 @@ void Rmi::disconnect() {
     std::cout<<"\n Disconnected \n";
 }
 
+std::string
+Rmi::call(int sockfd, std::string packet) {
+
+    std::cout<< "\n buffer ="<<packet.c_str();
+    //get length of whole packet
+    int length = static_cast<int>(packet.length());
+    std::cout<<"\n Packet size = "<< length<<"\n";
+    std::string data((char *) &length, 4);
+    data.append(packet);
+
+    std::cout<<"Sending out "<<data.c_str()<<"\n";
+    std::cout <<"size = "<<data.length()<<"\n";
+
+    connectToServer();
+    int n = write(sockfd, data.c_str(), static_cast<int>(data.length()));
+    if (n < 0) { 
+         error("ERROR writing to socket");
+    }
+
+    char buffer[256];
+    bzero(buffer, 256);
+    n = read(sockfd, buffer, 255);
+    if (n < 0) {
+         error("ERROR reading from socket");
+    }
+
+    std::ostringstream retBuff("") ;
+    retBuff << buffer;
+    return retBuff.str();
+}
+
 void Rmi::asyncCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) { 
     std::cout<<"\n In asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     char buffer[256];
     bzero(buffer,256);
     sprintf(buffer, "\n asyncCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
+
+    connectToServer();
     int n = write(sockfd, buffer, strlen(buffer));
     if (n < 0) { 
          error("ERROR writing to socket");
@@ -91,26 +125,22 @@ void Rmi::asyncCall(std::string objRefIn, std::string methodNameIn, std::string 
          error("ERROR reading from socket");
     }
     printf("return value = %s\n",buffer);
+    disconnect();
 }
 
 
 int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
+    return -1;
     std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
-    char buffer[256];
-    bzero(buffer,256);
-    sprintf(buffer, "\n Rmi::intCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
-    int n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) { 
-         error("ERROR writing to socket");
-    }
+    std::ostringstream obuffer("");
+    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
+    std::string packet = obuffer.str();
 
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-    if (n < 0) {
-         error("ERROR reading from socket");
-    }
-    printf("return value = %s\n",buffer);
+    connectToServer();
+    std::string retVal = call(sockfd, packet);
+    std::cout<<"\n return value = "<<retVal;
+    disconnect();
 
     return -1;
 }
@@ -118,21 +148,16 @@ int Rmi::intCall(std::string objRefIn, std::string methodNameIn, std::string met
 std::string Rmi::stringCall(std::string, std::string methodNameIn, std::string methodSignIn, Params& paramsListIn) {
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
     
-    char buffer[256];
-    bzero(buffer,256);
-    sprintf(buffer, "\n Rmi::stringCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
-    int n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) { 
-         error("ERROR writing to socket");
-    }
+    std::ostringstream obuffer("");
+    obuffer << "\nRmi::stringCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
+    std::string packet = obuffer.str();
 
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-    if (n < 0) {
-         error("ERROR reading from socket");
-    }
-    printf("return value = %s\n",buffer);
-    return "";
+    connectToServer();
+    std::string retVal = call(sockfd, packet);
+    std::cout<<"\n return value = "<<retVal;
+    disconnect();
+
+   return "";
 }
 
 }

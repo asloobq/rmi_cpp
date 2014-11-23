@@ -252,7 +252,7 @@ main(int argc, char *argv[]) {
 	// before outputting the line.
         //emitter.emitLine(1, "stopServer();");
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
-        emitter.emitLine("mRmiObj->connectToServer();");
+        //emitter.emitLine("mRmiObj->connectToServer();");
        	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
@@ -283,7 +283,7 @@ main(int argc, char *argv[]) {
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                                emitter.emitLineF("result = mRmiObj->intCall(mObjRef,\"%s\", \"%s\",*param);", 
+                emitter.emitLineF("result = mRmiObj->intCall(mObjRef,\"%s\", \"%s\",*param);", 
                                   methods[i].name.c_str(), sign.c_str());
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
@@ -306,8 +306,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("$$_stub::~$$_stub() {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "mRmiObj->disconnect();");
-        emitter.emitLine("delete mRmiObj;");
+        //emitter.emitLine(1, "mRmiObj->disconnect();");
+        emitter.emitLine(1, "delete mRmiObj;");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");

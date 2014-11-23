@@ -27,17 +27,51 @@ max (int a, int b) {
 void getRequestFromClient (int sock)
 {
     std::cout<<"\n Waiting to read from client = "<<sock<<"\n";
-    int n;
-    char buffer[256]; //what can be the max size?
+    unsigned int length;
 
-    while(1) {
-        std::cout<<"\n next \n";
-        bzero(buffer,256);
-        //n = read(sock, buffer,255);
-        n = recv(sock, buffer, 255, 0);
-        if (n < 0) {
+//    while(1) {
+//        std::cout<<"\n next \n";
+
+        //read the size of packet
+        int ret = recv(sock, (char*) &length, 4, 0);
+        //check if 4 bytes read properly
+        if(ret == 4) {
+            //verify length
+            std::cout<<"\n length = "<<length<<"\n";
+
+            //read remaining bytes
+            std::vector<char> data(length);
+            ret = recv(sock, &data[0], length, 0);
+
+            if(ret == length) {
+                std::string dataStr(&data[0], length);
+                ret = write(sock,"return value XYZ", 18);
+
+                if (ret < 0) {
+                     Error("ERROR writing to socket");
+                } else {
+                    std::cout<<"total bytes read ="<<length<<"\n";
+                    std::cout<<"to call method = "<<&data[0]<<"\n";
+                }
+
+            } else {
+                std::cout<<"\n incorrect amount of data read "<<ret<<" actual length = "<<length<<"\n";
+                std::cout<<"\n incorrect data = "<<&data[0];
+                return;
+            }
+        } else if (ret > 0 ) {
+            std::cout<<"\n incorrect length read "<<ret<<"\n";
+            return;
+        } else if (ret == 0) {
+            std::cout<<"\n Client socket closed = "<<sock;
+        } else {
+            Error("ERROR reading from socket");
+        }
+        //n = recv(sock, buffer, 255, 0);
+        /*if (n < 0) {
             Error("ERROR reading from socket");
         } else if(n > 0) {
+            printf("total bytes read = %d\n", n);
             printf("to call method = %s\n", buffer);
         n = write(sock,"return value XYZ",18);
         if (n < 0) {
@@ -45,8 +79,9 @@ void getRequestFromClient (int sock)
         }
         } else {
             break;
-        }
-    }
+        }*/
+  //  }
+    std::cout<<"\n Exiting sock = "<<sock;
 }
 
 
