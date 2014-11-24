@@ -90,8 +90,9 @@ Rmi::call(int sockfd, std::string packet, int retType) {
         int len;
         int ret = recv(sockfd, &len, sizeof(len), 0);
         if(ret == 4) {
-            char *buffer = new char[len];
+            char *buffer = new char[len+1];
             int ret = recv(sockfd, buffer, len, 0);
+            buffer[len] = '\0';
             if( ret == len) {
                 retBuff << buffer;
             } else {
