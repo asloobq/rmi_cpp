@@ -88,7 +88,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                             std::string dataStr(&data[0], remLength);
                             std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
                             int result = skelIn->callIntMethod(objRefStr, methodId, data);
-
+                            std::cout<<"\nsock = "<<sock<<" result = "<<result;
                         } else {
                             printError(ret, remLength);
                             return;

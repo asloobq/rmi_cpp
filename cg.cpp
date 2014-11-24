@@ -300,6 +300,16 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("memcpy(bufPtr, p%d.c_str(), len);", paramNo, paramNo);
                     emitter.emitLineF("bufPtr += len;", paramNo);
                 } else if((*it).compare("array of int") == 0) {
+                    //put the array length
+                    emitter.emitLineF("len = p%d.size();", paramNo);
+                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
+                    emitter.emitLine("bufPtr += sizeof(len);");
+                    //copy elements one by one
+                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    emitter.emitLineF(1, "memcpy(bufPtr, &p%d[i], sizeof(int));", paramNo);
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    emitter.emitLine(-1, "}");
+
                 } else if((*it).compare("array of string") == 0) {
                 } else {
                     assert(false);
@@ -452,6 +462,17 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d.c_str();", paramNo, paramNo);
                 } else if((*it).compare("array of int") == 0) {
                     emitter.emitLineF("std::vector<int> p%d;", paramNo);
+                    //read the number of elements
+                    emitter.emitLine("memcpy(&len, bufPtr, sizeof (int));");
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    //copy elements one by one
+                    emitter.emitLine("int elem;");
+                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    //read elements one by one
+                    emitter.emitLine(1, "memcpy(&elem, bufPtr, sizeof(int));");
+                    emitter.emitLineF("p%d.push_back(elem);", paramNo);
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    emitter.emitLine(-1, "}");
                 } else if((*it).compare("array of string") == 0) {
                     emitter.emitLineF("std::vector<std::string> p%d;", paramNo);
                 }

@@ -34,7 +34,14 @@ DevInterfaceImpl::my_method2(int arg1, int arg2) {
 
 int
 DevInterfaceImpl::my_method3(int p1, const std::vector<int> &p2, int p3) {
-    return -1;
+    int result = -1;
+    result += p1;
+    result += p3;
+    for(auto it = p2.begin(); it != p2.end(); it++) {
+        result += (*it);
+    }
+    std::cout<<endl<< "In my_method3 result = " << result;
+    return result;
 }
 
 void

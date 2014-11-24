@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string>
 #include <iostream>
+#include <vector>
 #include "DevInterface_stub.hpp"
 
 using namespace std;
@@ -19,6 +20,22 @@ main(int argc, char *argv[]) {
 
     string ec_s = stub.my_method2(12345, 67890);
     cout << "Got " << ec_s << " back from my_method2." << endl;
+
+    vector<int> arrayInts;
+    for(int i = 100; i < 1000; i += 100) {
+        arrayInts.push_back(i);
+    }
+
+    int result = stub.my_method3(99, arrayInts, 1000);
+    cout << "Got " << result << " back from my_method3." << endl;
+
+    vector<string> arrayStrings;
+    arrayStrings.push_back("one");
+    arrayStrings.push_back("two");
+    arrayStrings.push_back("three");
+    arrayStrings.push_back("four");
+
+    stub.my_method4(999, arrayStrings, "numbers");
 }
 
 

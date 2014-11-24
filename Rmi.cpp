@@ -111,23 +111,26 @@ void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodName
                     Params& paramsListIn, std::string bufferIn ) { 
     std::cout<<"\n In asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
-    /*char buffer[256];
-    bzero(buffer,256);
-    sprintf(buffer, "\n asyncCall name = %s sign = %s \n", methodNameIn.c_str(), methodSignIn.c_str());
+    //add object ref
+    unsigned int objRefLen = objRefIn.length();
+    std::string objRefPacket((char *) &objRefLen, 4);
+    objRefPacket.append(objRefIn);
 
+    //add methodId
+    std::string methodIdPacket((char *) &methodIdIn, 4);
+    objRefPacket.append(methodIdPacket);
+
+    unsigned int bufLen = bufferIn.length();
+    std::string bufPacket((char *) &bufLen, 4);
+    bufPacket.append(bufferIn);
+
+    objRefPacket.append(bufPacket);
+
+    std::string packet = objRefPacket;
     connectToServer();
-    int n = write(sockfd, buffer, strlen(buffer));
-    if (n < 0) { 
-         error("ERROR writing to socket");
-    }
+    call(sockfd, packet);
+    disconnect();
 
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-    if (n < 0) {
-         error("ERROR reading from socket");
-    }
-    printf("return value = %s\n",buffer);
-    disconnect();*/
 }
 
 
