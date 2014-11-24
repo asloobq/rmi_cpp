@@ -13,6 +13,9 @@
 namespace Rmi {
 
 #define MSGLENGTH 1024
+#define RET_TYPE_VOID 0
+#define RET_TYPE_INT 1
+#define RET_TYPE_STRING 2
 
 #define error(str) do {                         \
                 perror (#str);                  \
@@ -76,7 +79,7 @@ void Rmi::disconnect() {
 }
 
 std::string
-Rmi::call(int sockfd, std::string packet) {
+Rmi::call(int sockfd, std::string packet, int retType) {
 
     std::cout<< "\n buffer ="<<packet.c_str();
     //get length of whole packet
@@ -94,16 +97,44 @@ Rmi::call(int sockfd, std::string packet) {
          error("ERROR writing to socket");
     }
 
-    /*std::cout<<"\n Waiting for results";
-    char buffer[256];
-    bzero(buffer, 256);
-    n = read(sockfd, buffer, 255);
-    if (n < 0) {
-         error("ERROR reading from socket");
-    }*/
-
     std::ostringstream retBuff("") ;
-    //retBuff << buffer;
+
+    if(retType == RET_TYPE_INT) {
+        std::cout<<"\n Waiting for results";
+        int result;                
+        int ret = recv(sockfd, (char *)&result, 4, 0);
+        if (ret < 0) {
+            error("ERROR reading from socket");
+        } else if(ret != 4) {
+            error("ERROR incorrect number of bytes read");
+        }
+        retBuff << result;
+    } else if(retType == RET_TYPE_STRING) {
+        std::cout<<"\n Waiting for results";
+        int len;
+        int ret = recv(sockfd, &len, sizeof(len), 0);
+        if(ret == 4) {
+            char *buffer = new char[len];
+            int ret = recv(sockfd, buffer, len, 0);
+            if( ret == len) {
+                retBuff << buffer;
+            } else {
+                if (ret < 0) {
+                    error("ERROR reading from socket");
+                } else {
+                    error("ERROR incorrect number of bytes read");
+                }
+            }
+            
+        } else {
+            if (ret < 0) {
+                error("ERROR reading from socket");
+            } else {
+                error("ERROR incorrect number of bytes read");
+            }
+        }
+    }
+
     return retBuff.str();
 }
 
@@ -128,7 +159,7 @@ void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodName
 
     std::string packet = objRefPacket;
     connectToServer();
-    call(sockfd, packet);
+    call(sockfd, packet, RET_TYPE_VOID);
     disconnect();
 
 }
@@ -174,16 +205,18 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
 //    std::string packet = obuffer.str();
     std::string packet = objRefPacket;
     connectToServer();
-    std::string retVal = call(sockfd, packet);
-    std::cout<<"\n return value = "<<retVal;
+    std::string retVal = call(sockfd, packet, RET_TYPE_INT);
+    //std::cout<<"\n return value = "<<retVal;
+    int result = atoi(retVal.c_str());
+    printf("\n return value = %d", result);
     disconnect();
 
-    return -1;
+    return result;
 }
 
 std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
                             Params& paramsListIn, std::string bufferIn) {
-    return "";
+    //return "";
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     /*//add method sign
@@ -215,11 +248,11 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
 
     std::string packet = objRefPacket;
     connectToServer();
-    std::string retVal = call(sockfd, packet);
+    std::string retVal = call(sockfd, packet, RET_TYPE_STRING);
     std::cout<<"\n return value = "<<retVal;
     disconnect();
 
-   return "";
+   return retVal;
 }
 
 }

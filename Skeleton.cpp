@@ -87,8 +87,37 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                         if(ret == remLength) {
                             std::string dataStr(&data[0], remLength);
                             std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
-                            int result = skelIn->callIntMethod(objRefStr, methodId, data);
-                            std::cout<<"\nsock = "<<sock<<" result = "<<result;
+
+                            int resInt;
+                            std::string resStr("");
+                            skelIn->callIntMethod(objRefStr, methodId, data, resInt, resStr);
+
+                            int retType = skelIn->getReturnType(methodId);
+                            if(retType == 0) {
+                            } else if(retType == 1) { //int
+                                std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
+                                std::string res((char *) &resInt, 4);
+                                ret = write(sock, res.c_str(), 4);
+                                if(ret != 4) {
+                                    printError(ret, 4);
+                                    return;
+                                }
+
+                            } else if(retType == 2) { //string
+                                std::cout<<"\nsock = "<<sock<<" result = "<<resStr;
+                                //write length of string
+                                int len = resStr.length();
+                                std::string resPacket((char *) &len, 4);
+                                resPacket.append(resStr);
+                                ret = write(sock, resPacket.c_str(), resPacket.length());
+                                if(ret != resPacket.length()) {
+                                    printError(ret, resPacket.length());
+                                    return;
+                                }
+                            } else {
+                                assert(false);
+                            }
+   
                         } else {
                             printError(ret, remLength);
                             return;
@@ -205,12 +234,16 @@ Skeleton::getObjectReference() const {
     return "an_object_ref";
 }
 
-int 
-Skeleton::callIntMethod(std::string, int, std::vector<char>) {
+void 
+Skeleton::callIntMethod(std::string, int, std::vector<char>, int&, std::string&) {
     std::cerr << "'Skeleton::callIntMethod(std::string, int, std::vector<char>)' needs to be filled in." << std::endl;
-    return -1;
 }
 
+int
+Skeleton::getReturnType(int) {
+    std::cerr << "'Skeleton::getReturnType(int)' needs to be filled in." << std::endl;
+    return -1;
+}
 
 void
 Skeleton::startServer() {

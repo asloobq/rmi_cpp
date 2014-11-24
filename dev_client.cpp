@@ -17,9 +17,11 @@ main(int argc, char *argv[]) {
 
     int ec = stub.my_method1(123, "test string", 456);
     cout << "Got " << ec << " back from my_method1." << endl;
+    assert(ec == 590);
 
     string ec_s = stub.my_method2(12345, 67890);
     cout << "Got " << ec_s << " back from my_method2." << endl;
+    assert(ec_s == "arg1 = 12345 arg2 = 67890");
 
     vector<int> arrayInts;
     for(int i = 100; i < 1000; i += 100) {
@@ -28,6 +30,7 @@ main(int argc, char *argv[]) {
 
     int result = stub.my_method3(99, arrayInts, 1000);
     cout << "Got " << result << " back from my_method3." << endl;
+    assert(result == 5599);
 
     vector<string> arrayStrings;
     arrayStrings.push_back("one");

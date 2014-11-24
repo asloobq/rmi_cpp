@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <iostream>
+#include <sstream>
 #include "DevInterface_skel.hpp"
 
 using namespace std;
@@ -26,15 +27,16 @@ DevInterfaceImpl::my_method1(int arg1, const string &arg2, int arg3) {
 
 string
 DevInterfaceImpl::my_method2(int arg1, int arg2) {
-    std::string result = "arg1 =  " + arg1;
-    result = result + " arg2 = ";
-    result.push_back(arg2);
-    return result;
+
+    std::stringstream result;
+    result << "arg1 = " << arg1 << " arg2 = " << arg2;
+    std::cout << "\n In my_method2 result = "<<result.str().c_str();
+    return result.str();
 }
 
 int
 DevInterfaceImpl::my_method3(int p1, const std::vector<int> &p2, int p3) {
-    int result = -1;
+    int result = 0;
     result += p1;
     result += p3;
     for(auto it = p2.begin(); it != p2.end(); it++) {
@@ -46,6 +48,12 @@ DevInterfaceImpl::my_method3(int p1, const std::vector<int> &p2, int p3) {
 
 void
 DevInterfaceImpl::my_method4(int p1, const std::vector<string> &p2, const std::string &p3) {
+
+    std::cout << endl << "In my_method4 p1="<<p1<<" p3="<<p3.c_str() << ". ";
+    for(auto it = p2.begin(); it != p2.end(); it++) {
+        std::cout << (*it).c_str() << " ";
+    }
+    
 }
 
 int

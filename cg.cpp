@@ -396,7 +396,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("explicit $$_skel($$ *);");
         emitter.emitLine("");
         emitter.emitLine("virtual std::string getObjectReference() const;");
-        emitter.emitLine("int callIntMethod(std::string, int, std::vector<char>);");
+        emitter.emitLine("void callIntMethod(std::string, int, std::vector<char>, int&, std::string&);");
+        emitter.emitLine("int getReturnType(int);");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -442,7 +443,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine(-1, "}");
         //callIntMethod(std::string, int)
         emitter.emitLine("");
-        emitter.emitLine("int $$_skel::callIntMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn) {");
+        emitter.emitLine("void $$_skel::callIntMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn,");
+        emitter.emitLine("                           int &resInt, std::string &resStr) {");
         emitter.emitLine(1, "");
         emitter.emitLine("int result = -1;");
         emitter.emitLine("char *buf = dataIn.data();");
@@ -508,8 +510,10 @@ main(int argc, char *argv[]) {
 
             //call the method using the arguments created
             if(methods[i].return_type.compare("int") == 0) {
-                emitter.emitStringF("result = mInterface->%s(", methods[i].name.c_str());
-            } else {
+                emitter.emitStringF("resInt = mInterface->%s(", methods[i].name.c_str());
+            } else if(methods[i].return_type.compare("string") == 0) {
+                emitter.emitStringF("std::string res = mInterface->%s(", methods[i].name.c_str());
+            }else {
                 emitter.emitStringF("mInterface->%s(", methods[i].name.c_str());
             }
 
@@ -521,13 +525,37 @@ main(int argc, char *argv[]) {
                 }
             }
             emitter.emitString(");");
+            if(methods[i].return_type.compare("string") == 0) {
+                emitter.emitString("resStr.append(res);");
+            }
             emitter.emitLine(-1, "}");
             emitter.emitLine("break;");
         }
         emitter.emitLine("default: assert(false);");
         emitter.decrement_indent_level();
         emitter.emitLine("}");
-        emitter.emitLine("return result;");
+        //emitter.emitLine("return result;");
+        emitter.emitLine(-1, "}");
+
+        //int getReturnType
+        emitter.emitLine("");
+        emitter.emitLine("int $$_skel::getReturnType(int methodIdIn) {");
+        emitter.emitLine(1, "");
+        emitter.emitLine("switch(methodIdIn) {");
+        emitter.increment_indent_level();
+        for (size_t i = 0; i < methods.size(); i++) {
+            emitter.emitLineF("case %d: ", i);
+            if(methods[i].return_type == "async") {
+                emitter.emitLine("return 0;");
+            } else if(methods[i].return_type == "int") {
+                emitter.emitLine("return 1;");
+            } else if(methods[i].return_type == "string") {
+                emitter.emitLine("return 2;");
+            }
+        }
+        emitter.emitLine("default: assert(false);");
+        emitter.decrement_indent_level();
+        emitter.emitLine("}");
         emitter.emitLine(-1, "}");
     }
 }

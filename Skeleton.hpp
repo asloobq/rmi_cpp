@@ -12,7 +12,8 @@ class Skeleton {
         void startServer();
         void stopServer();
         virtual ~Skeleton() { stopServer(); }
-        virtual int callIntMethod(std::string, int, std::vector<char>);
+        virtual void callIntMethod(std::string, int, std::vector<char>, int&, std::string&);
+        virtual int getReturnType(int);
 };
 
 
