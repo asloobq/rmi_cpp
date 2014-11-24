@@ -41,8 +41,6 @@ getRequestFromClient (int sock, Skeleton *skelIn)
     std::cout<<"\nsock = "<<sock<<" Waiting to read";
     unsigned int totalLength;
     //bad code with lots of ifs
-//    while(1) {
-//        std::cout<<"\n next \n";
 
         //read the size of packet
         int ret = recv(sock, (char*) &totalLength, 4, 0);
@@ -126,79 +124,6 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                         printError(ret, 4);
                         return;
                     }
-
-                    /*//read length of the method name
-                    int methodNameLen;
-                    int ret = recv(sock, (char*) &methodNameLen, 4, 0);
-
-                    if(ret == 4) {
-                        //read method name
-                        std::cout<<"\nsock = "<<sock<<" methodNameLen = "<<methodNameLen;
-                        std::vector<char> methodName(methodNameLen);
-                        ret = recv(sock, &methodName[0], methodNameLen, 0);
-
-                        if(ret == methodNameLen) {
-                            std::cout<<"\nsock = "<<sock<<" methodName = "<<&methodName[0];
-
-                            //method sign length
-                            int methodSignLen;
-                            int ret = recv(sock, (char*) &methodSignLen, 4, 0);
-                            if(ret == 4) {
-                                //read method sign
-                                std::cout<<"\nsock = "<<sock<<" methodSignLen = "<<methodSignLen;
-                                std::vector<char> methodSign(methodSignLen);
-                                ret = recv(sock, &methodSign[0], methodSignLen, 0);
-
-                                if(ret == methodSignLen) {
-                                    std::cout<<"\nsock = "<<sock<<" methodSign = "<<&methodSign[0];                               
-                                } else {
-                                    printError(ret, 4);
-                                    return;
-                                }
-                            } else {
-                                printError(ret, 4);
-                                return;
-                            }
-                        } else {
-                            printError(ret, 4);
-                            return;
-                        }
-
-                    } else {
-                        printError(ret, 4);
-                        return;
-                    }
-
-
-                    //read remaining bytes
-                    unsigned int remLength = totalLength - objRefLen;
-                    if(remLength == 0) {
-                        std::cout<<"\nsock = "<<sock<<" Nothing to read";
-                        return;
-                    }
-                    std::vector<char> data(remLength);
-                    ret = recv(sock, &data[0], remLength, 0);
-
-                    if(ret == remLength) {
-                        std::string dataStr(&data[0], remLength);
-                        std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
-
-                        ret = write(sock,"return value XYZ", 18);
-                        if (ret == 18) {
-                        } else {
-                            if (ret < 0) {
-                                Error("ERROR writing to socket");
-                            } else {
-                                std::cout<<"total bytes written ="<<ret<<"\n";
-                                std::cout<<"to call method = "<<&data[0]<<"\n";
-                            }
-                            return;
-                        }
-
-                    } else {
-                        printError(ret, remLength);
-                        return;
-                    } */
                 } else {
                     printError(ret, objRefLen); 
                     return;
@@ -210,20 +135,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
         } else {
             printError(ret, 4);
         }
-        //n = recv(sock, buffer, 255, 0);
-        /*if (n < 0) {
-            Error("ERROR reading from socket");
-        } else if(n > 0) {
-            printf("total bytes read = %d\n", n);
-            printf("to call method = %s\n", buffer);
-        n = write(sock,"return value XYZ",18);
-        if (n < 0) {
-            Error("ERROR writing to socket");
-        }
-        } else {
-            break;
-        }*/
-  //  }
+
     std::cout<<"\nsock = "<<sock<<" Exiting";
 }
 
@@ -247,16 +159,10 @@ Skeleton::getReturnType(int) {
 
 void
 Skeleton::startServer() {
-//    mServer = new Rmi::RmiServer();
-//    mServer->startServer();
      int sockfd, newsockfd, portno, pid;
      socklen_t clilen;
      struct sockaddr_in serv_addr, cli_addr;
 
-     //if (argc < 2) {
-     //    fprintf(stderr,"ERROR, no port provided\n");
-     //    exit(1);
-     //}
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0)
         Error("ERROR opening socket");
@@ -295,9 +201,6 @@ Skeleton::startServer() {
 
 void
 Skeleton::stopServer() {
-//    if(mServer) {
-//        mServer->stopServer();
-//    }
 }
 
 

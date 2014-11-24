@@ -121,16 +121,12 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include <string>");
         emitter.emitLine("#include <vector>");
-        //emitter.emitLine("#include \"RmiServer.hpp\"");
         emitter.emitLine("");
         emitter.emitLine("class $$ {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        //emitter.emitLine(1, "Rmi::RmiServer *mServer;");
-        //emitter.emitLine("bool mIsServer;");
         emitter.emitLine(1, "public:");
         emitter.increment_indent_level();
-        //emitter.emitLine("$$(bool);");
 	emitter.emitLine("virtual ~$$();");
         // Output the methods.
         for (size_t i = 0; i < methods.size(); i++) {
@@ -140,7 +136,6 @@ main(int argc, char *argv[]) {
             emit_params(&emitter, methods[i].param_types);
             emitter.emitLineEnd(") = 0;");
         }
-        //emitter.emitLine("void stopServer();");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -163,23 +158,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include \"$$.hpp\"");
         emitter.emitLine("");
-        //emitter.emitLine("$$::$$(bool isServerIn) : mIsServer(isServerIn) {");
-        //emitter.emitLine(1, "if(mIsServer) {");
-        //emitter.emitLine(1, "mServer = new Rmi::RmiServer();");
-        //emitter.emitLine("mServer->startServer();");             
-        //emitter.emitLine(-1, "}");
-        //TODO start server
-        //emitter.emitLine(-1, "}");
-        //emitter.emitLine("");
-        emitter.emitLine("$$::~$$() {}");
-        //TODO stop server
-        //emitter.emitLine(1, "delete mServer;");
-        //emitter.emitLine(-1, "}");
-        //emitter.emitLine("void $$::stopServer() {");
-        //emitter.emitLine(1, "if(mIsServer) {");
-        //emitter.emitLine(1, "mServer->stopServer();");             
-        //emitter.emitLine(-1, "}");
-        //emitter.emitLine("}");
+        emitter.emitLine("$$::~$$() {}"); 
     }
 
     /*
@@ -211,7 +190,6 @@ main(int argc, char *argv[]) {
         emitter.emitLine("explicit $$_stub(const std::string &);");
         // Emit the methods.
         for (size_t i = 0; i < methods.size(); i++) {
-            // cout << "    method name: " << methods[i].name << endl;
             emitter.emitLineStartF("virtual %s %s(",
              methods[i].return_type == "int" ? "int" : methods[i].return_type == "async" ? "void" : "std::string",
              methods[i].name.c_str());
@@ -252,27 +230,16 @@ main(int argc, char *argv[]) {
         emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        //emitter.emitLine(1, "stopServer();");
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
-        //emitter.emitLine("mRmiObj->connectToServer();");
        	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
-
-	// The 1 as the first argument causes the indent level to be incremented
-	// before outputting the line.
-        //emitter.emitLine(1,
-        // "std::cerr << \"'$$_stub::$$_stub($$ *)' needs to be filled in.\" << std::endl;");
-	// The -1 as the first argument causes the indent level to be decremented
-	// before outputting the line.
-        //emitter.emitLine(-1, "}");
 
         for (size_t i = 0; i < methods.size(); i++) {
             // Put a blank line if not the first method.
             if (i > 0) {
                 emitter.emitLine("");
             }
-            // cout << "    method name: " << methods[i].name << endl;
             emitter.emitLineStartF("%s $$_stub::%s(",
              methods[i].return_type == "int" ? "int" : methods[i].return_type == "async" ? "void" : "std::string",
              methods[i].name.c_str());
@@ -351,7 +318,6 @@ main(int argc, char *argv[]) {
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
                 emitter.emitLineF("mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
                                   i, methods[i].name.c_str(), sign.c_str());
-                //assert(false);
             }
             emitter.emitLine(-1, "}");
         }
@@ -361,7 +327,6 @@ main(int argc, char *argv[]) {
         emitter.emitLine("$$_stub::~$$_stub() {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        //emitter.emitLine(1, "mRmiObj->disconnect();");
         emitter.emitLine(1, "delete mRmiObj;");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
@@ -441,7 +406,6 @@ main(int argc, char *argv[]) {
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
-        //callIntMethod(std::string, int)
         emitter.emitLine("");
         emitter.emitLine("void $$_skel::callIntMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn,");
         emitter.emitLine("                           int &resInt, std::string &resStr) {");
@@ -534,7 +498,6 @@ main(int argc, char *argv[]) {
         emitter.emitLine("default: assert(false);");
         emitter.decrement_indent_level();
         emitter.emitLine("}");
-        //emitter.emitLine("return result;");
         emitter.emitLine(-1, "}");
 
         //int getReturnType
@@ -589,18 +552,13 @@ emit_params(Emitter *emitter, const vector<string> &param_types) {
 */
 std::string
 createMethodSignature(Method& method) {
-    /*string name;
-    string return_type;
-    vector<string> param_types;*/
+    
     std::string sign("");
-    //sign.push_back(method.name);
-    //sign.push_back(" ");
     for(std::vector<std::string>::iterator it = method.param_types.begin(); it != method.param_types.end(); ++it) {
         sign = sign + *it;
         sign = sign + " ";
     }
 
-    //return by value ?
     return sign;
 }
 

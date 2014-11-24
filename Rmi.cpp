@@ -21,11 +21,6 @@ namespace Rmi {
                 perror (#str);                  \
         } while(0)
 
-//int
-//max (int a, int b)
-//{
-//        return a > b ? a : b;
-//}
 
 void Rmi::connectToServer() {
     std::cout<<"\n Connecting \n";
@@ -34,11 +29,6 @@ void Rmi::connectToServer() {
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    //char buffer[256];
-    //if (argc < 3) {
-    //   fprintf(stderr,"usage %s hostname port\n", argv[0]);
-    //   exit(0);
-    //}
     portno = 10003; //atoi(argv[2]);
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
@@ -57,20 +47,6 @@ void Rmi::connectToServer() {
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
-    //make function call
-    //printf("Please enter the message: ");
-    //bzero(buffer,256);
-    //fgets(buffer,255,stdin);
-    //n = write(sockfd,buffer,strlen(buffer));
-    //if (n < 0) 
-    //     error("ERROR writing to socket");
-    //bzero(buffer,256);
-    //n = read(sockfd,buffer,255);
-    //if (n < 0) 
-    //     error("ERROR reading from socket");
-    //printf("%s\n",buffer);
-    //close(sockfd);
-
 }
 
 void Rmi::disconnect() { 
@@ -169,16 +145,6 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
                  Params& paramsListIn, std::string bufferIn) {
     std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
-    //add method sign
-    //unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
-    //std::string methodSignPacket((char *) &methodSignLen, 4);
-    //methodSignPacket.append(methodSignIn);
-
-    //add method name
-    //unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
-    //std::string methodNamePacket((char *) &methodNameLen, 4);
-    //methodNamePacket.append(methodNameIn);
-
     //add object ref
     unsigned int objRefLen = objRefIn.length();
     std::string objRefPacket((char *) &objRefLen, 4);
@@ -191,22 +157,12 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
     unsigned int bufLen = bufferIn.length();
     std::string bufPacket((char *) &bufLen, 4);
     bufPacket.append(bufferIn);
-    //std::cout<<"\n bufPacket length = "<<bufPacket.length();
-    //printf("\n %d %d %s %d", bufferIn.c_str(), bufferIn.c_str() + 4, bufferIn.c_str() + 8, bufferIn.c_str() + 20);
 
-    //objRefPacket.append(methodNamePacket);
-    //objRefPacket.append(methodSignPacket);
     objRefPacket.append(bufPacket);
 
-//    std::ostringstream obuffer("");
-//    obuffer << "\nRmi::intCall name = "<< methodNameIn.c_str() <<" sign = "<< methodSignIn.c_str() <<" \n";
-
-
-//    std::string packet = obuffer.str();
     std::string packet = objRefPacket;
     connectToServer();
     std::string retVal = call(sockfd, packet, RET_TYPE_INT);
-    //std::cout<<"\n return value = "<<retVal;
     int result = atoi(retVal.c_str());
     printf("\n return value = %d", result);
     disconnect();
@@ -218,16 +174,6 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
                             Params& paramsListIn, std::string bufferIn) {
     //return "";
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
-
-    /*//add method sign
-    unsigned int methodSignLen = static_cast<int>(methodSignIn.length());
-    std::string methodSignPacket((char *) &methodSignLen, 4);
-    methodSignPacket.append(methodSignIn);
-
-    //add method name
-    unsigned int methodNameLen = static_cast<int>(methodNameIn.length());
-    std::string methodNamePacket((char *) &methodNameLen, 4);
-    methodNamePacket.append(methodNameIn);*/
 
     //add object ref
     unsigned int objRefLen = static_cast<int>(objRefIn.length());
@@ -242,8 +188,6 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
     std::string bufPacket((char *) &bufLen, 4);
     bufPacket.append(bufferIn);
 
-    //objRefPacket.append(methodNamePacket);
-    //objRefPacket.append(methodSignPacket);
     objRefPacket.append(bufPacket);
 
     std::string packet = objRefPacket;
