@@ -3,9 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <thread>
 
 class Skeleton {
 
+    std::thread *mServerThread;
     public:
 
         std::string getObjectReference() const;

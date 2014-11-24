@@ -6,7 +6,6 @@
 #include <sys/select.h>
 #include <sys/time.h>
 #include <netinet/in.h>
-#include <thread>
 #include <stdio.h>
 #include <string.h>
 #include <vector>
@@ -140,25 +139,8 @@ getRequestFromClient (int sock, Skeleton *skelIn)
 }
 
 
-std::string
-Skeleton::getObjectReference() const {
-    std::cerr << "'Skeleton::getObjectReference() const' needs to be filled in." << std::endl;
-    return "an_object_ref";
-}
-
-void 
-Skeleton::callIntMethod(std::string, int, std::vector<char>, int&, std::string&) {
-    std::cerr << "'Skeleton::callIntMethod(std::string, int, std::vector<char>)' needs to be filled in." << std::endl;
-}
-
-int
-Skeleton::getReturnType(int) {
-    std::cerr << "'Skeleton::getReturnType(int)' needs to be filled in." << std::endl;
-    return -1;
-}
-
 void
-Skeleton::startServer() {
+initializeServer(Skeleton *skelIn) {
      int sockfd, newsockfd, portno, pid;
      socklen_t clilen;
      struct sockaddr_in serv_addr, cli_addr;
@@ -187,7 +169,7 @@ Skeleton::startServer() {
          }
          std::cout<<"\n New client connected = "<<newsockfd<<"\n";
 
-         t = new std::thread(getRequestFromClient, newsockfd, this);
+         t = new std::thread(getRequestFromClient, newsockfd, skelIn);
          threadsList.push_back(t);
      } // end of while
 
@@ -199,8 +181,31 @@ Skeleton::startServer() {
      close(sockfd);
 }
 
+std::string
+Skeleton::getObjectReference() const {
+    std::cerr << "'Skeleton::getObjectReference() const' needs to be filled in." << std::endl;
+    return "an_object_ref";
+}
+
+void 
+Skeleton::callIntMethod(std::string, int, std::vector<char>, int&, std::string&) {
+    std::cerr << "'Skeleton::callIntMethod(std::string, int, std::vector<char>)' needs to be filled in." << std::endl;
+}
+
+int
+Skeleton::getReturnType(int) {
+    std::cerr << "'Skeleton::getReturnType(int)' needs to be filled in." << std::endl;
+    return -1;
+}
+
+void
+Skeleton::startServer() {
+    mServerThread = new std::thread(initializeServer, this);
+}
+
 void
 Skeleton::stopServer() {
+    mServerThread->join();
 }
 
 
