@@ -311,6 +311,21 @@ main(int argc, char *argv[]) {
                     emitter.emitLine(-1, "}");
 
                 } else if((*it).compare("array of string") == 0) {
+                    //put the array length
+                    emitter.emitLineF("len = p%d.size();", paramNo);
+                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(int));");
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    //copy elements one by one
+                    emitter.emitLine("int elemSize;");
+                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    //put length of current string
+                    emitter.emitLineF(1, "elemSize = p%d.at(i).length();", paramNo);
+                    emitter.emitLine("memcpy(bufPtr, &elemSize, sizeof(int));");
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    //put the actual string
+                    emitter.emitLineF("memcpy(bufPtr, p%d.at(i).c_str(), elemSize);", paramNo);
+                    emitter.emitLine("bufPtr += elemSize;");
+                    emitter.emitLine(-1, "}");
                 } else {
                     assert(false);
                 }
@@ -475,6 +490,19 @@ main(int argc, char *argv[]) {
                     emitter.emitLine(-1, "}");
                 } else if((*it).compare("array of string") == 0) {
                     emitter.emitLineF("std::vector<std::string> p%d;", paramNo);
+                    //read the number of elements
+                    emitter.emitLine("memcpy(&len, bufPtr, sizeof (int));");
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    //copy elements one by one
+                    emitter.emitLine("int elemSize;");
+                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    //read the size of the element
+                    emitter.emitLine(1, "memcpy(&elemSize, bufPtr, sizeof(int));");
+                    emitter.emitLine("bufPtr += sizeof(int);");
+                    //read the actual string
+                    emitter.emitLineF("p%d.push_back(std::string(bufPtr, elemSize));", paramNo);
+                    emitter.emitLineF("bufPtr += elemSize;");
+                    emitter.emitLine(-1, "}");
                 }
             }
 
