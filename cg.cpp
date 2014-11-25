@@ -386,6 +386,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <iostream>");
         emitter.emitLine("#include <cassert>");
         emitter.emitLine("#include <cstring>");
+        emitter.emitLine("#include <sstream>");
         emitter.emitLine("");
 
         // Emit the constructor.
@@ -401,8 +402,9 @@ main(int argc, char *argv[]) {
         emitter.emitLine("std::string $$_skel::getObjectReference() const {");
         // The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "std::string ref = \"myObjRef1\"; //need to generate from object ");
-        emitter.emitLine("return ref;");
+        emitter.emitLine(1, "std::stringstream ss;");
+        emitter.emitLine("ss << mInterface;");
+        emitter.emitLine("return ss.str();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
