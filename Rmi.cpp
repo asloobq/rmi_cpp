@@ -59,9 +59,9 @@ Rmi::call(int sockfd, std::string packet, int retType) {
 
     std::cout<< "\n buffer ="<<packet.c_str();
     //get length of whole packet
-    int length = static_cast<int>(packet.length());
+    size_t length = static_cast<int>(packet.length());
     std::cout<<"\n Packet size = "<< length<<"\n";
-    std::string data((char *) &length, 4);
+    std::string data((char *) &length, sizeof(length));
     data.append(packet);
 
     std::cout<<"Sending out "<<data.c_str()<<"\n";
@@ -77,17 +77,17 @@ Rmi::call(int sockfd, std::string packet, int retType) {
 
     if(retType == RET_TYPE_INT) {
         std::cout<<"\n Waiting for results";
-        int result;                
-        int ret = recv(sockfd, (char *)&result, 4, 0);
+        size_t result;                
+        int ret = recv(sockfd, (char *)&result, sizeof(result), 0);
         if (ret < 0) {
             error("ERROR reading from socket");
-        } else if(ret != 4) {
+        } else if(ret != sizeof(result)) {
             error("ERROR incorrect number of bytes read");
         }
         retBuff << result;
     } else if(retType == RET_TYPE_STRING) {
         std::cout<<"\n Waiting for results";
-        int len;
+        size_t len;
         int ret = recv(sockfd, &len, sizeof(len), 0);
         if(ret == 4) {
             char *buffer = new char[len+1];
@@ -120,16 +120,16 @@ void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodName
     std::cout<<"\n In asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     //add object ref
-    unsigned int objRefLen = objRefIn.length();
-    std::string objRefPacket((char *) &objRefLen, 4);
+    size_t objRefLen = objRefIn.length();
+    std::string objRefPacket((char *) &objRefLen, sizeof(objRefLen));
     objRefPacket.append(objRefIn);
 
     //add methodId
-    std::string methodIdPacket((char *) &methodIdIn, 4);
+    std::string methodIdPacket((char *) &methodIdIn, sizeof(methodIdIn));
     objRefPacket.append(methodIdPacket);
 
-    unsigned int bufLen = bufferIn.length();
-    std::string bufPacket((char *) &bufLen, 4);
+    size_t bufLen = bufferIn.length();
+    std::string bufPacket((char *) &bufLen, sizeof(bufLen));
     bufPacket.append(bufferIn);
 
     objRefPacket.append(bufPacket);
@@ -147,16 +147,16 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
     std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     //add object ref
-    unsigned int objRefLen = objRefIn.length();
-    std::string objRefPacket((char *) &objRefLen, 4);
+    size_t objRefLen = objRefIn.length();
+    std::string objRefPacket((char *) &objRefLen, sizeof(objRefLen));
     objRefPacket.append(objRefIn);
 
     //add methodId
-    std::string methodIdPacket((char *) &methodIdIn, 4);
+    std::string methodIdPacket((char *) &methodIdIn, sizeof(methodIdIn));
     objRefPacket.append(methodIdPacket);
 
-    unsigned int bufLen = bufferIn.length();
-    std::string bufPacket((char *) &bufLen, 4);
+    size_t bufLen = bufferIn.length();
+    std::string bufPacket((char *) &bufLen, sizeof(bufLen));
     bufPacket.append(bufferIn);
 
     objRefPacket.append(bufPacket);
@@ -177,17 +177,17 @@ std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string me
     std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
 
     //add object ref
-    unsigned int objRefLen = static_cast<int>(objRefIn.length());
-    std::string objRefPacket((char *) &objRefLen, 4);
+    size_t objRefLen = objRefIn.length();
+    std::string objRefPacket((char *) &objRefLen, sizeof(objRefLen));
     objRefPacket.append(objRefIn);
 
     //add methodId
-    std::string methodIdPacket((char *) &methodIdIn, 4);
+    std::string methodIdPacket((char *) &methodIdIn, sizeof(methodIdIn));
     objRefPacket.append(methodIdPacket);
 
-    unsigned int bufLen = bufferIn.length();
-    std::string bufPacket((char *) &bufLen, 4);
-    bufPacket.append(bufferIn);
+    size_t bufLen = bufferIn.length();
+    std::string bufPacket((char *) &bufLen, sizeof(bufLen));
+    bufPacket.append(bufferIn);   //add object ref
 
     objRefPacket.append(bufPacket);
 

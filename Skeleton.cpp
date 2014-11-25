@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <unistd.h>
 
 #define Error(str) do {                         \
                 perror (#str);                  \
@@ -38,23 +39,23 @@ void
 getRequestFromClient (int sock, Skeleton *skelIn)
 {
     std::cout<<"\nsock = "<<sock<<" Waiting to read";
-    unsigned int totalLength;
+    size_t totalLength;
     //bad code with lots of ifs
 
         //read the size of packet
-        int ret = recv(sock, (char*) &totalLength, 4, 0);
-        unsigned int remLength = totalLength;
+        int ret = recv(sock, (char*) &totalLength, sizeof(totalLength), 0);
+        size_t remLength = totalLength;
         //check if 4 bytes read properly
-        if(ret == 4) {
+        if(ret == sizeof(totalLength)) {
             //verify length
             std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
 
             //read length of objRef
-            int objRefLen;
-            int ret = recv(sock, (char*) &objRefLen, 4, 0);
+            size_t objRefLen;
+            int ret = recv(sock, (char*) &objRefLen, sizeof(objRefLen), 0);
 
-            if(ret == 4) {
-                remLength -= 4;
+            if(ret == sizeof(objRefLen)) {
+                remLength -= sizeof(objRefLen);
                 //read obj ref
                 std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
                 std::vector<char> objRef(objRefLen);
@@ -65,12 +66,12 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                     std::string objRefStr(&objRef[0], objRefLen);
                     std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
 
-                    //read method Id
+                    //read method Id (Note: its a normal int and NOT size_t
                     int methodId;
-                    int ret = recv(sock, (char*) &methodId, 4, 0);
+                    int ret = recv(sock, (char*) &methodId, sizeof(methodId), 0);
 
-                    if(ret == 4) {
-                        remLength -= 4;
+                    if(ret == sizeof(methodId)) {
+                        remLength -= sizeof(methodId);
                         std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
 
                         //read remaining bytes
@@ -85,7 +86,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                             std::string dataStr(&data[0], remLength);
                             std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
 
-                            int resInt;
+                            int resInt; //Note: this should be an int
                             std::string resStr("");
                             skelIn->callIntMethod(objRefStr, methodId, data, resInt, resStr);
 
@@ -93,18 +94,18 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                             if(retType == 0) {
                             } else if(retType == 1) { //int
                                 std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
-                                std::string res((char *) &resInt, 4);
-                                ret = write(sock, res.c_str(), 4);
-                                if(ret != 4) {
-                                    printError(ret, 4);
+                                std::string res((char *) &resInt, sizeof(resInt));
+                                ret = write(sock, res.c_str(), res.length());
+                                if(ret != res.length()) {
+                                    printError(ret, res.length());
                                     return;
                                 }
 
                             } else if(retType == 2) { //string
                                 std::cout<<"\nsock = "<<sock<<" result = "<<resStr;
                                 //write length of string
-                                int len = resStr.length();
-                                std::string resPacket((char *) &len, 4);
+                                size_t len = resStr.length();
+                                std::string resPacket((char *) &len, sizeof(len));
                                 resPacket.append(resStr);
                                 ret = write(sock, resPacket.c_str(), resPacket.length());
                                 if(ret != resPacket.length()) {
@@ -120,7 +121,7 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                             return;
                         }
                     } else {
-                        printError(ret, 4);
+                        printError(ret, sizeof(methodId));
                         return;
                     }
                 } else {
@@ -128,11 +129,11 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                     return;
                 }
             } else {
-                printError(ret, 4);
+                printError(ret, sizeof(objRefLen));
                 return;
             }
         } else {
-            printError(ret, 4);
+            printError(ret, sizeof(totalLength));
         }
 
     std::cout<<"\nsock = "<<sock<<" Exiting";
