@@ -264,7 +264,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
                     emitter.emitLine("bufPtr += sizeof(len);");
                     //copy string itself
-                    emitter.emitLineF("memcpy(bufPtr, p%d.c_str(), len);", paramNo, paramNo);
+                    emitter.emitLineF("memcpy(bufPtr, p%d.c_str(), len);", paramNo);
                     emitter.emitLineF("bufPtr += len;", paramNo);
                 } else if((*it).compare("array of int") == 0) {
                     //put the array length
@@ -280,8 +280,8 @@ main(int argc, char *argv[]) {
                 } else if((*it).compare("array of string") == 0) {
                     //put the array length
                     emitter.emitLineF("len = p%d.size();", paramNo);
-                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(int));");
-                    emitter.emitLine("bufPtr += sizeof(int);");
+                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
+                    emitter.emitLine("bufPtr += sizeof(len);");
                     //copy elements one by one
                     emitter.emitLine("size_t elemSize;");
                     emitter.emitLine("for(int i = 0; i < len; i++) {");
@@ -432,14 +432,14 @@ main(int argc, char *argv[]) {
                 it != methods[i].param_types.end(); it++, paramNo++) {
                 if((*it).compare("int") == 0) {
                     emitter.emitLineF("int p%d;", paramNo);
-                    emitter.emitLineF("memcpy(&p%d, bufPtr, sizeof (int));");
+                    emitter.emitLineF("memcpy(&p%d, bufPtr, sizeof (int));", paramNo);
                     emitter.emitLine("bufPtr += sizeof (int);");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d;", paramNo, paramNo);
                 } else if((*it).compare("string") == 0) {
                     //read length of string
                     emitter.emitLine("memcpy(&len, bufPtr, sizeof (len));");
                     emitter.emitLine("bufPtr += sizeof (len);");
-                    emitter.emitLineF("std::cout<<std::endl<<\"length of string = \"<<len;");
+                    emitter.emitLine("std::cout<<std::endl<<\"length of string = \"<<len;");
                     emitter.emitLineF("std::string p%d(bufPtr, len);", paramNo);
                     emitter.emitLine("bufPtr += len;");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d.c_str();", paramNo, paramNo);
@@ -449,7 +449,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("memcpy(&len, bufPtr, sizeof (len));");
                     emitter.emitLine("bufPtr += sizeof(len);");
                     //copy elements one by one
-                    emitter.emitLine("int elem;");
+                    emitter.emitLine("int elem;"); //Note : This has to be an int
                     emitter.emitLine("for(int i = 0; i < len; i++) {");
                     //read elements one by one
                     emitter.emitLine(1, "memcpy(&elem, bufPtr, sizeof(elem));");
@@ -465,11 +465,11 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("size_t elemSize;");
                     emitter.emitLine("for(int i = 0; i < len; i++) {");
                     //read the size of the element
-                    emitter.emitLine(1, "memcpy(&elemSize, bufPtr, sizeof(len));");
-                    emitter.emitLine("bufPtr += sizeof(len);");
+                    emitter.emitLine(1, "memcpy(&elemSize, bufPtr, sizeof(elemSize));");
+                    emitter.emitLine("bufPtr += sizeof(elemSize);");
                     //read the actual string
                     emitter.emitLineF("p%d.push_back(std::string(bufPtr, elemSize));", paramNo);
-                    emitter.emitLineF("bufPtr += elemSize;");
+                    emitter.emitLine("bufPtr += elemSize;");
                     emitter.emitLine(-1, "}");
                 }
             }
