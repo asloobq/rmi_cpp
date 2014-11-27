@@ -42,7 +42,6 @@ CodeGenSrcs := \
 # DON'T DELETE THE BLANK LINE AT THE END OF THIS LIST.
 LibSrcs := \
 	Skeleton.cpp \
-	Params.cpp \
 	Rmi.cpp \
 
 #

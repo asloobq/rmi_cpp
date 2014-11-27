@@ -2,7 +2,6 @@
 #define RMI_HPP
 
 #include <string>
-#include "Params.hpp"
 
 namespace Rmi {
 
@@ -11,11 +10,8 @@ class Rmi {
     public:
         void connectToServer();
         void disconnect();
-        std::string call(int, std::string, int);
-        // Probably not the right way to define methods but 
-        // doing it just for the understanding
-
         // Makes the actual function call to the server
+        std::string call(int, std::string, int);
         // Arg1 class name
         // Arg2 object reference stringified
         // Arg3 method name '<method name>'

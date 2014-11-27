@@ -185,6 +185,7 @@ main(int argc, char *argv[]) {
 	// before outputting the line.
         emitter.emitLine(1, "std::string mObjRef;");
         emitter.emitLine("Rmi::Rmi *mRmiObj;");
+        emitter.emitLine("std::string mTypeName;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_stub(const std::string &);");
@@ -223,7 +224,6 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <iostream>");
         emitter.emitLine("#include <cassert>");
         emitter.emitLine("#include <cstring>");
-        emitter.emitLine("#include \"Params.hpp\"");
         emitter.emitLine("");
 
         // Emit the constructor.
@@ -231,6 +231,7 @@ main(int argc, char *argv[]) {
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
+        emitter.emitLine("mTypeName = std::string(\"$$\");");
        	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
@@ -258,6 +259,7 @@ main(int argc, char *argv[]) {
                 if((*it).compare("int") == 0) {
                     emitter.emitLineF("memcpy(bufPtr, &p%d, sizeof(p%d));", paramNo, paramNo);
                     emitter.emitLineF("bufPtr += sizeof(p%d);", paramNo);
+                    emitter.emitLine("");
                 } else if((*it).compare("string") == 0) {
                     //copy length of the string
                     emitter.emitLineF("len = p%d.length();", paramNo);
@@ -266,6 +268,7 @@ main(int argc, char *argv[]) {
                     //copy string itself
                     emitter.emitLineF("memcpy(bufPtr, p%d.c_str(), len);", paramNo);
                     emitter.emitLineF("bufPtr += len;", paramNo);
+                    emitter.emitLine("");
                 } else if((*it).compare("array of int") == 0) {
                     //put the array length
                     emitter.emitLineF("len = p%d.size();", paramNo);
@@ -276,7 +279,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF(1, "memcpy(bufPtr, &p%d[i], sizeof(int));", paramNo);
                     emitter.emitLine("bufPtr += sizeof(int);");
                     emitter.emitLine(-1, "}");
-
+                    emitter.emitLine("");
                 } else if((*it).compare("array of string") == 0) {
                     //put the array length
                     emitter.emitLineF("len = p%d.size();", paramNo);
@@ -293,6 +296,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("memcpy(bufPtr, p%d.at(i).c_str(), elemSize);", paramNo);
                     emitter.emitLine("bufPtr += elemSize;");
                     emitter.emitLine(-1, "}");
+                    emitter.emitLine("");
                 } else {
                     assert(false);
                 }
@@ -302,20 +306,16 @@ main(int argc, char *argv[]) {
             emitter.emitLine("delete[] buf;");
 
             std::string sign = createMethodSignature(methods[i]);
-            emitter.emitLine("std::string typeName(\"$$\");");
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
-                emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->intCall(typeName, mObjRef, %d, bufStr);", i);
+                emitter.emitLineF("result = mRmiObj->intCall(mTypeName, mObjRef, %d, bufStr);", i);
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
                 emitter.emitLine("std::string result;");
-                emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->stringCall(typeName, mObjRef, %d, bufStr);", i);
+                emitter.emitLineF("result = mRmiObj->stringCall(mTypeName, mObjRef, %d, bufStr);", i);
                 emitter.emitLine("return result;");
             } else {
-                emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("mRmiObj->asyncCall(typeName, mObjRef, %d, bufStr);", i);
+                emitter.emitLineF("mRmiObj->asyncCall(mTypeName, mObjRef, %d, bufStr);", i);
             }
             emitter.emitLine(-1, "}");
         }
@@ -353,14 +353,14 @@ main(int argc, char *argv[]) {
         emitter.emitLine("class $$_skel : public Skeleton {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1, "$$ *mInterface;");
+        emitter.emitLine(1, "$$* mInterface;");
         emitter.emitLine("static std::map<std::string, $$*> sObjectMap;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_skel($$ *);");
         emitter.emitLine("");
         emitter.emitLine("virtual std::string getObjectReference() const;");
-        emitter.emitLine("void callIntMethod(std::string, int, std::vector<char>, int&, std::string&);");
+        emitter.emitLine("void callMethod(std::string, int, std::vector<char>, int&, std::string&);");
         emitter.emitLine("int getReturnType(int);");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
@@ -422,7 +422,7 @@ main(int argc, char *argv[]) {
 	// before outputting the line.
         emitter.emitLine(-1, "}");
         emitter.emitLine("");
-        emitter.emitLine("void $$_skel::callIntMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn,");
+        emitter.emitLine("void $$_skel::callMethod(std::string objRefIn, int methodIdIn, std::vector<char> dataIn,");
         emitter.emitLine("                           int &resInt, std::string &resStr) {");
         emitter.emitLine(1, "");
         emitter.emitLine("int result = -1;");
@@ -435,10 +435,6 @@ main(int argc, char *argv[]) {
         emitter.emitLine("std::cout<<std::endl<<\" total length of packet = \"<<totalLen;");
         //get correct object
         emitter.emitLine("std::cout << \"map.size() = \" << sObjectMap.size() << std::endl;");
-        emitter.emitLine("std::map<std::string, $$*> mymap = sObjectMap;");
-        emitter.emitLine("for(auto& it : mymap) {");
-        emitter.emitLine("std::cout << (it.first).c_str() << \" : \" << it.second << std::endl;");
-        emitter.emitLine("}");
         emitter.emitLine("$$* objRef;");
         emitter.emitLine("try {");
         emitter.emitLine(1, "objRef = sObjectMap.at(objRefIn);");
@@ -460,6 +456,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("memcpy(&p%d, bufPtr, sizeof (int));", paramNo);
                     emitter.emitLine("bufPtr += sizeof (int);");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d;", paramNo, paramNo);
+                    emitter.emitLine("");
                 } else if((*it).compare("string") == 0) {
                     //read length of string
                     emitter.emitLine("memcpy(&len, bufPtr, sizeof (len));");
@@ -468,6 +465,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("std::string p%d(bufPtr, len);", paramNo);
                     emitter.emitLine("bufPtr += len;");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d.c_str();", paramNo, paramNo);
+                    emitter.emitLine("");
                 } else if((*it).compare("array of int") == 0) {
                     emitter.emitLineF("std::vector<int> p%d;", paramNo);
                     //read the number of elements
@@ -481,6 +479,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("p%d.push_back(elem);", paramNo);
                     emitter.emitLine("bufPtr += sizeof(elem);");
                     emitter.emitLine(-1, "}");
+                    emitter.emitLine("");
                 } else if((*it).compare("array of string") == 0) {
                     emitter.emitLineF("std::vector<std::string> p%d;", paramNo);
                     //read the number of elements
@@ -496,6 +495,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("p%d.push_back(std::string(bufPtr, elemSize));", paramNo);
                     emitter.emitLine("bufPtr += elemSize;");
                     emitter.emitLine(-1, "}");
+                    emitter.emitLine("");
                 }
             }
 
@@ -547,11 +547,6 @@ main(int argc, char *argv[]) {
         emitter.decrement_indent_level();
         emitter.emitLine("}");
         emitter.emitLine(-1, "}");
-        //getMapInstance()
-        //emitter.emitLine("std::map<std::string, $$*>& $$_skel::getMapInstance() {");
-        //emitter.emitLine(1, "static std::map<std::string, $$*> sObjectMap;");
-        //emitter.emitLine("return sObjectMap;");
-        //emitter.emitLine(-1, "}");
     }
 }
 

@@ -23,6 +23,11 @@ namespace Rmi {
                 perror (#str);                  \
         } while(0)
 
+/*
+    Title : A stream socket client demo
+    http://beej.us/guide/bgnet/examples/client.c
+*/
+
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -86,7 +91,6 @@ void Rmi::disconnect() {
 std::string
 Rmi::call(int sockfd, std::string packet, int retType) {
 
-    std::cout<< "\n buffer ="<<packet.c_str();
     //get length of whole packet
     size_t length = static_cast<int>(packet.length());
     std::cout<<"\n Packet size = "<< length<<"\n";
@@ -131,7 +135,8 @@ Rmi::call(int sockfd, std::string packet, int retType) {
                     error("ERROR incorrect number of bytes read");
                 }
             }
-            
+            delete [] buffer;
+
         } else {
             if (ret < 0) {
                 error("ERROR reading from socket");
@@ -144,6 +149,7 @@ Rmi::call(int sockfd, std::string packet, int retType) {
     return retBuff.str();
 }
 
+//Packs the call information in a byte array
 std::string
 Rmi::pack(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
 

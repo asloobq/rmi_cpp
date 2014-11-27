@@ -9,15 +9,15 @@
 class Skeleton {
 
     public:
+        // key is name of the interface
+        // value if of derived type (any which extends from Skeleton)
         static std::map<std::string, Skeleton*> sSkelMap;
-        //static template<typename T>
-        //std::map<std::string, T*> sObjectMap;
 
         std::string getObjectReference() const;
         void startServer();
         void stopServer();
         virtual ~Skeleton() { stopServer(); }
-        virtual void callIntMethod(std::string, int, std::vector<char>, int&, std::string&);
+        virtual void callMethod(std::string, int, std::vector<char>, int&, std::string&);
         virtual int getReturnType(int);
         std::thread& getServerInstance();
 
@@ -25,13 +25,6 @@ class Skeleton {
             //insert a dummy object 
             sSkelMap.insert(std::make_pair<std::string, Skeleton*>("Skeleton", NULL));
         }
-
-        /*template<typename T>
-        std::map<std::string, T*>& getMapInstance() {
-            static std::map<std::string, T*> sObjectMap;
-            return sObjectMap;
-        }*/
-
 };
 
 
