@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <signal.h>
+#include <exception>
 
 #define Error(str) do {                         \
                 perror (#str);                  \
@@ -23,6 +24,8 @@
 
 #define PORT_NO "10003"
 #define BACKLOG 10
+
+//std::map<std::string, Skeleton*> sSkelMap;
 
 void sigchld_handler(int s)
 {
@@ -75,9 +78,22 @@ getRequestFromClient (int sock, Skeleton *skelIn)
             //verify length
             std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
 
+            //read length of typeName
+            size_t typeLen;
+            int ret = recv(sock, (char*) &typeLen, sizeof (typeLen), 0);
+            if(ret == sizeof(typeLen)) {
+                remLength -= sizeof (typeLen);
+                //read type name
+                std::cout << "sock = " << sock << " typename length = " << typeLen << std::endl;
+                std::vector<char> typeName(typeLen);
+                ret = recv(sock, &typeName[0], typeLen, 0);
+                if(ret == typeLen) {
+                    remLength -= typeLen;
+                    std::string typeNameStr(&typeName[0], typeLen);
+                    std::cout << "sock = " << sock << " typename = " << typeNameStr.c_str() << std::endl;
             //read length of objRef
             size_t objRefLen;
-            int ret = recv(sock, (char*) &objRefLen, sizeof(objRefLen), 0);
+            ret = recv(sock, (char*) &objRefLen, sizeof(objRefLen), 0);
 
             if(ret == sizeof(objRefLen)) {
                 remLength -= sizeof(objRefLen);
@@ -113,9 +129,19 @@ getRequestFromClient (int sock, Skeleton *skelIn)
 
                             int resInt; //Note: this should be an int
                             std::string resStr("");
-                            skelIn->callIntMethod(objRefStr, methodId, data, resInt, resStr);
-
-                            int retType = skelIn->getReturnType(methodId);
+                            //From the object type name, get the Skel object
+                            //instance
+                            //std::string skelName("DevInterface_skel");
+                            Skeleton *skelObj;
+                            try {
+                                skelObj = Skeleton::sSkelMap.at(typeNameStr);
+                                skelObj->callIntMethod(objRefStr, methodId, data, resInt, resStr);
+                            } catch (std::exception& ex) {
+                                std::cout << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
+                                std::cout << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
+                            }
+                            //skelIn->callIntMethod(objRefStr, methodId, data, resInt, resStr);
+                            int retType = skelObj->getReturnType(methodId);
                             if(retType == 0) {
                             } else if(retType == 1) { //int
                                 std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
@@ -157,6 +183,15 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                 printError(ret, sizeof(objRefLen));
                 return;
             }
+                } else {
+                    printError(ret, remLength);
+                    return;
+                }
+            } else {
+                printError(ret, remLength);
+                return;
+            }
+            
         } else {
             printError(ret, sizeof(totalLength));
         }
@@ -245,6 +280,8 @@ initializeServer(Skeleton *skelIn) {
         inet_ntop(their_addr.ss_family,
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
+        std::cout<<"Skeleton.cpp initializeServer map " << &(Skeleton::sSkelMap) << " size  = " << Skeleton::sSkelMap.size() <<std::endl;
+
         printf("server: got connection from %s\n", s);
                 t = new std::thread(getRequestFromClient, new_fd, skelIn);
                 threadsList.push_back(t);
@@ -277,14 +314,21 @@ Skeleton::getReturnType(int) {
 
 void
 Skeleton::startServer() {
-    mServerThread = new std::thread(initializeServer, this);
+    getServerInstance();
 }
 
 void
 Skeleton::stopServer() {
-    mServerThread->join();
+    getServerInstance().join();
 }
 
+std::thread&
+Skeleton::getServerInstance() {
+    static std::thread sServerThread(initializeServer, this);
+    return sServerThread;
+}
+
+std::map<std::string, Skeleton*> Skeleton::sSkelMap;
 
 /*
  * These lines should go at the end of every source code file

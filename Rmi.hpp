@@ -16,13 +16,14 @@ class Rmi {
         // doing it just for the understanding
 
         // Makes the actual function call to the server
-        // Arg1 object reference stringified
-        // Arg2 method name '<method name>'
-        // Arg3 method param types '<type 1> <type 2>'
+        // Arg1 class name
+        // Arg2 object reference stringified
+        // Arg3 method name '<method name>'
         // Arg4 method arguments list
-        void asyncCall(std::string, int, std::string, std::string, Params&, std::string);
-        int intCall(std::string, int, std::string, std::string, Params&, std::string);
-        std::string stringCall(std::string, int, std::string, std::string, Params&, std::string);
+        void asyncCall(std::string, std::string, int, std::string);
+        int intCall(std::string, std::string, int, std::string);
+        std::string stringCall(std::string, std::string, int, std::string);
+        std::string pack(std::string, std::string, int, std::string);
 
 };
 

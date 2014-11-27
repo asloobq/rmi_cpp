@@ -144,26 +144,40 @@ Rmi::call(int sockfd, std::string packet, int retType) {
     return retBuff.str();
 }
 
-void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
-                    Params& paramsListIn, std::string bufferIn ) { 
-    std::cout<<"\n In asyncCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+std::string
+Rmi::pack(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
+
+    //add type name length
+    size_t typeLen = typeNameIn.length();
+    std::string packet((char *) &typeLen, sizeof (typeLen));
+
+    //add typename
+    packet.append(typeNameIn);
+
+    //add object ref length
+    size_t objRefLen = objRefIn.length();
+    packet.append((char *) &objRefLen, sizeof(objRefLen));
 
     //add object ref
-    size_t objRefLen = objRefIn.length();
-    std::string objRefPacket((char *) &objRefLen, sizeof(objRefLen));
-    objRefPacket.append(objRefIn);
+    packet.append(objRefIn);
 
     //add methodId
-    std::string methodIdPacket((char *) &methodIdIn, sizeof(methodIdIn));
-    objRefPacket.append(methodIdPacket);
+    packet.append((char *) &methodIdIn, sizeof(methodIdIn));
 
+    //add buffer length
     size_t bufLen = bufferIn.length();
-    std::string bufPacket((char *) &bufLen, sizeof(bufLen));
-    bufPacket.append(bufferIn);
+    packet.append((char *) &bufLen, sizeof(bufLen));
 
-    objRefPacket.append(bufPacket);
+    //add buffer
+    packet.append(bufferIn);
 
-    std::string packet = objRefPacket;
+    return packet;
+}
+
+void Rmi::asyncCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn ) { 
+    std::cout<<"\n In asyncCall id = " << methodIdIn << std::endl;
+
+    std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
     connectToServer();
     call(sockfd, packet, RET_TYPE_VOID);
     disconnect();
@@ -171,26 +185,10 @@ void Rmi::asyncCall(std::string objRefIn, int methodIdIn, std::string methodName
 }
 
 
-int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
-                 Params& paramsListIn, std::string bufferIn) {
-    std::cout<<"\n In Rmi::intCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+int Rmi::intCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
+    std::cout<<"\n In Rmi::intCall id = " << methodIdIn << " typename = " << typeNameIn <<std::endl;
 
-    //add object ref
-    size_t objRefLen = objRefIn.length();
-    std::string objRefPacket((char *) &objRefLen, sizeof(objRefLen));
-    objRefPacket.append(objRefIn);
-
-    //add methodId
-    std::string methodIdPacket((char *) &methodIdIn, sizeof(methodIdIn));
-    objRefPacket.append(methodIdPacket);
-
-    size_t bufLen = bufferIn.length();
-    std::string bufPacket((char *) &bufLen, sizeof(bufLen));
-    bufPacket.append(bufferIn);
-
-    objRefPacket.append(bufPacket);
-
-    std::string packet = objRefPacket;
+    std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
     connectToServer();
     std::string retVal = call(sockfd, packet, RET_TYPE_INT);
     int result = atoi(retVal.c_str());
@@ -200,27 +198,11 @@ int Rmi::intCall(std::string objRefIn, int methodIdIn, std::string methodNameIn,
     return result;
 }
 
-std::string Rmi::stringCall(std::string objRefIn, int methodIdIn, std::string methodNameIn, std::string methodSignIn,
-                            Params& paramsListIn, std::string bufferIn) {
+std::string Rmi::stringCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
     //return "";
-    std::cout<<"\n In Rmi::stringCall name = " << methodNameIn.c_str() << " sign = "<< methodSignIn.c_str() <<"\n";
+    std::cout<<"\n In Rmi::stringCall id = " << methodIdIn << std::endl;
 
-    //add object ref
-    size_t objRefLen = objRefIn.length();
-    std::string objRefPacket((char *) &objRefLen, sizeof(objRefLen));
-    objRefPacket.append(objRefIn);
-
-    //add methodId
-    std::string methodIdPacket((char *) &methodIdIn, sizeof(methodIdIn));
-    objRefPacket.append(methodIdPacket);
-
-    size_t bufLen = bufferIn.length();
-    std::string bufPacket((char *) &bufLen, sizeof(bufLen));
-    bufPacket.append(bufferIn);   //add object ref
-
-    objRefPacket.append(bufPacket);
-
-    std::string packet = objRefPacket;
+    std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
     connectToServer();
     std::string retVal = call(sockfd, packet, RET_TYPE_STRING);
     std::cout<<"\n return value = "<<retVal;

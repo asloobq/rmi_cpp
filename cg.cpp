@@ -302,22 +302,20 @@ main(int argc, char *argv[]) {
             emitter.emitLine("delete[] buf;");
 
             std::string sign = createMethodSignature(methods[i]);
+            emitter.emitLine("std::string typeName(\"$$\");");
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->intCall(mObjRef, %d, \"%s\", \"%s\",*param, bufStr);", 
-                                  i, methods[i].name.c_str(), sign.c_str());
+                emitter.emitLineF("result = mRmiObj->intCall(typeName, mObjRef, %d, bufStr);", i);
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
                 emitter.emitLine("std::string result;");
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("result = mRmiObj->stringCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
-                                  i, methods[i].name.c_str(), sign.c_str());
+                emitter.emitLineF("result = mRmiObj->stringCall(typeName, mObjRef, %d, bufStr);", i);
                 emitter.emitLine("return result;");
             } else {
                 emitter.emitLine("Rmi::Params *param = new Rmi::Params();");
-                emitter.emitLineF("mRmiObj->asyncCall(mObjRef, %d, \"%s\", \"%s\", *param, bufStr);",
-                                  i, methods[i].name.c_str(), sign.c_str());
+                emitter.emitLineF("mRmiObj->asyncCall(typeName, mObjRef, %d, bufStr);", i);
             }
             emitter.emitLine(-1, "}");
         }
@@ -363,6 +361,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("virtual std::string getObjectReference() const;");
         emitter.emitLine("void callIntMethod(std::string, int, std::vector<char>, int&, std::string&);");
         emitter.emitLine("int getReturnType(int);");
+        //emitter.emitLine("std::map<std::string, $$*>& getMapInstance();");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -387,13 +386,26 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <cassert>");
         emitter.emitLine("#include <cstring>");
         emitter.emitLine("#include <sstream>");
+        emitter.emitLine("#include <string>");
+        emitter.emitLine("#include <utility>");
         emitter.emitLine("");
 
         // Emit the constructor.
         emitter.emitLine("$$_skel::$$_skel($$ *interfaceIn) : mInterface(interfaceIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
-        emitter.emitLine(1,"startServer();");
+        emitter.increment_indent_level();
+        emitter.emitLine("std::stringstream ss;");
+        emitter.emitLine("ss << mInterface;");
+        emitter.emitLine("std::pair<std::string, $$*> pair = std::make_pair(ss.str(), mInterface);");
+        emitter.emitLine("getMapInstance<$$>().insert(pair);");
+        emitter.emitLine("std::cout<<\"Inserting object \"<<ss.str().c_str()<< \" in map \" << &(getMapInstance<$$>()) << std::endl;");
+        emitter.emitLine("size_t isPresent = Skeleton::sSkelMap.count(\"$$_skel\");");
+        emitter.emitLine("if(isPresent == 0) {");
+        emitter.emitLine(1, "Skeleton::sSkelMap.insert(std::make_pair<std::string, Skeleton*>(\"$$\", this));");
+        emitter.emitLine("std::cout<<\"Inserting string $$ in map \" << &(Skeleton::sSkelMap) << std::endl;");
+        emitter.emitLine(-1,"}");
+        emitter.emitLine("startServer();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
@@ -420,7 +432,13 @@ main(int argc, char *argv[]) {
         emitter.emitLine("memcpy(&totalLen, bufPtr, sizeof (totalLen));");
         emitter.emitLine("bufPtr += sizeof (totalLen);");
         emitter.emitLine("std::cout<<std::endl<<\" total length of packet = \"<<totalLen;");
-
+        //get correct object
+        emitter.emitLine("std::cout << \"map.size() = \" << getMapInstance<$$>().size() << std::endl;");
+        emitter.emitLine("std::map<std::string, $$*> mymap = getMapInstance<$$>();");
+        emitter.emitLine("for(auto& it : mymap) {");
+        emitter.emitLine("std::cout << (it.first).c_str() << \" : \" << it.second << std::endl;");
+        emitter.emitLine("}");
+        //emitter.emitLine("$$* objRef = getMapInstance().at(objRefIn);");
         emitter.emitLine("switch(methodIdIn) {");
         emitter.increment_indent_level();
         for (size_t i = 0; i < methods.size(); i++) {
@@ -522,6 +540,11 @@ main(int argc, char *argv[]) {
         emitter.decrement_indent_level();
         emitter.emitLine("}");
         emitter.emitLine(-1, "}");
+        //getMapInstance()
+        //emitter.emitLine("std::map<std::string, $$*>& $$_skel::getMapInstance() {");
+        //emitter.emitLine(1, "static std::map<std::string, $$*> sObjectMap;");
+        //emitter.emitLine("return sObjectMap;");
+        //emitter.emitLine(-1, "}");
     }
 }
 
