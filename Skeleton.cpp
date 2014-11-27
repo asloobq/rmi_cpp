@@ -25,8 +25,6 @@
 #define PORT_NO "10003"
 #define BACKLOG 10
 
-//std::map<std::string, Skeleton*> sSkelMap;
-
 void sigchld_handler(int s)
 {
     while(waitpid(-1, NULL, WNOHANG) > 0);
@@ -131,16 +129,16 @@ getRequestFromClient (int sock, Skeleton *skelIn)
                             std::string resStr("");
                             //From the object type name, get the Skel object
                             //instance
-                            //std::string skelName("DevInterface_skel");
                             Skeleton *skelObj;
                             try {
                                 skelObj = Skeleton::sSkelMap.at(typeNameStr);
-                                skelObj->callIntMethod(objRefStr, methodId, data, resInt, resStr);
                             } catch (std::exception& ex) {
                                 std::cout << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
                                 std::cout << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
+                                return;
                             }
-                            //skelIn->callIntMethod(objRefStr, methodId, data, resInt, resStr);
+
+                            skelObj->callIntMethod(objRefStr, methodId, data, resInt, resStr);
                             int retType = skelObj->getReturnType(methodId);
                             if(retType == 0) {
                             } else if(retType == 1) { //int
@@ -329,6 +327,9 @@ Skeleton::getServerInstance() {
 }
 
 std::map<std::string, Skeleton*> Skeleton::sSkelMap;
+
+//template <typename T>
+//std::map<std::string, T*> Skeleton::sObjectMap;
 
 /*
  * These lines should go at the end of every source code file

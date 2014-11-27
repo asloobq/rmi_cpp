@@ -10,6 +10,8 @@ class Skeleton {
 
     public:
         static std::map<std::string, Skeleton*> sSkelMap;
+        //static template<typename T>
+        //std::map<std::string, T*> sObjectMap;
 
         std::string getObjectReference() const;
         void startServer();
@@ -21,19 +23,14 @@ class Skeleton {
 
         Skeleton() {
             //insert a dummy object 
-            sSkelMap.insert(std::make_pair<std::string, Skeleton*>("asdf", NULL));
+            sSkelMap.insert(std::make_pair<std::string, Skeleton*>("Skeleton", NULL));
         }
-        template<typename T>
+
+        /*template<typename T>
         std::map<std::string, T*>& getMapInstance() {
             static std::map<std::string, T*> sObjectMap;
             return sObjectMap;
-        }
-
-        //std::map<std::string, Skeleton*>&
-        //getSkelMapInstance() {
-//            static std::map<std::string, Skeleton*> sSkelMap;
-        //    return sSkelMap;
-        //}
+        }*/
 
 };
 

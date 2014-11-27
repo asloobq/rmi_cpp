@@ -354,6 +354,7 @@ main(int argc, char *argv[]) {
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "$$ *mInterface;");
+        emitter.emitLine("static std::map<std::string, $$*> sObjectMap;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_skel($$ *);");
@@ -361,7 +362,6 @@ main(int argc, char *argv[]) {
         emitter.emitLine("virtual std::string getObjectReference() const;");
         emitter.emitLine("void callIntMethod(std::string, int, std::vector<char>, int&, std::string&);");
         emitter.emitLine("int getReturnType(int);");
-        //emitter.emitLine("std::map<std::string, $$*>& getMapInstance();");
 	// The -2 as the first argument causes the indent level to be decremented
 	// by 2 before outputting the line.
         emitter.emitLine(-2, "};");
@@ -389,7 +389,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <string>");
         emitter.emitLine("#include <utility>");
         emitter.emitLine("");
-
+        emitter.emitLine("std::map<std::string, $$*> $$_skel::sObjectMap;");
+        emitter.emitLine("");
         // Emit the constructor.
         emitter.emitLine("$$_skel::$$_skel($$ *interfaceIn) : mInterface(interfaceIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
@@ -398,8 +399,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("std::stringstream ss;");
         emitter.emitLine("ss << mInterface;");
         emitter.emitLine("std::pair<std::string, $$*> pair = std::make_pair(ss.str(), mInterface);");
-        emitter.emitLine("getMapInstance<$$>().insert(pair);");
-        emitter.emitLine("std::cout<<\"Inserting object \"<<ss.str().c_str()<< \" in map \" << &(getMapInstance<$$>()) << std::endl;");
+        emitter.emitLine("sObjectMap.insert(pair);");
+        emitter.emitLine("std::cout<<\"Inserting object \"<<ss.str().c_str()<< \" in map \" << &sObjectMap << std::endl;");
         emitter.emitLine("size_t isPresent = Skeleton::sSkelMap.count(\"$$_skel\");");
         emitter.emitLine("if(isPresent == 0) {");
         emitter.emitLine(1, "Skeleton::sSkelMap.insert(std::make_pair<std::string, Skeleton*>(\"$$\", this));");
@@ -433,12 +434,18 @@ main(int argc, char *argv[]) {
         emitter.emitLine("bufPtr += sizeof (totalLen);");
         emitter.emitLine("std::cout<<std::endl<<\" total length of packet = \"<<totalLen;");
         //get correct object
-        emitter.emitLine("std::cout << \"map.size() = \" << getMapInstance<$$>().size() << std::endl;");
-        emitter.emitLine("std::map<std::string, $$*> mymap = getMapInstance<$$>();");
+        emitter.emitLine("std::cout << \"map.size() = \" << sObjectMap.size() << std::endl;");
+        emitter.emitLine("std::map<std::string, $$*> mymap = sObjectMap;");
         emitter.emitLine("for(auto& it : mymap) {");
         emitter.emitLine("std::cout << (it.first).c_str() << \" : \" << it.second << std::endl;");
         emitter.emitLine("}");
-        //emitter.emitLine("$$* objRef = getMapInstance().at(objRefIn);");
+        emitter.emitLine("$$* objRef;");
+        emitter.emitLine("try {");
+        emitter.emitLine(1, "objRef = sObjectMap.at(objRefIn);");
+        emitter.emitLine(-1, "} catch (std::exception &ex) {");
+        emitter.emitLine(1, "std::cout << \"Could not find object \" << objRef << __FILE__ << \":\"<<__LINE__ << std::endl;");
+        emitter.emitLine("return;");
+        emitter.emitLine(-1, "}");
         emitter.emitLine("switch(methodIdIn) {");
         emitter.increment_indent_level();
         for (size_t i = 0; i < methods.size(); i++) {
@@ -494,11 +501,11 @@ main(int argc, char *argv[]) {
 
             //call the method using the arguments created
             if(methods[i].return_type.compare("int") == 0) {
-                emitter.emitStringF("resInt = mInterface->%s(", methods[i].name.c_str());
+                emitter.emitStringF("resInt = objRef->%s(", methods[i].name.c_str());
             } else if(methods[i].return_type.compare("string") == 0) {
-                emitter.emitStringF("std::string res = mInterface->%s(", methods[i].name.c_str());
+                emitter.emitStringF("std::string res = objRef->%s(", methods[i].name.c_str());
             }else {
-                emitter.emitStringF("mInterface->%s(", methods[i].name.c_str());
+                emitter.emitStringF("objRef->%s(", methods[i].name.c_str());
             }
 
             if(methods[i].param_types.size() > 0) {
