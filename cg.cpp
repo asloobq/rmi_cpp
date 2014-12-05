@@ -452,7 +452,7 @@ main(int argc, char *argv[]) {
         // The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "std::stringstream ss;");
-        emitter.emitLine("ss << serverName << \"^\" << portNo << \"^\" << mInterface;");
+        emitter.emitLine("ss << mServerName << \"^\" << mPortNo << \"^\" << mInterface;");
         emitter.emitLine("return ss.str();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.

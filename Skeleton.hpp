@@ -8,13 +8,14 @@
 
 class Skeleton {
 
-    static int sockfd; //server socket file descriptor
+    static int mSockfd; //server socket file descriptor
 
-    void initializeServer();
+    bool initializeServer();
 
     protected:
-    static std::string serverName;
-    static std::string portNo;
+    static std::string mServerName;
+    static std::string mPortNo;
+    static int mPortNoInt;
 
     public:
         // key is name of the interface

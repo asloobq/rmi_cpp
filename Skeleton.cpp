@@ -27,7 +27,7 @@
 #define RET_TYPE_VOID 0
 #define RET_TYPE_INT 1
 #define RET_TYPE_STRING 2
-#
+
 /*
     Title : A stream socket server demo
     http://beej.us/guide/bgnet/examples/server.c
@@ -205,7 +205,7 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
 
 
 void
-waitForConnections(Skeleton *skelIn, int sockfd) {
+waitForConnections(Skeleton *skelIn, int mSockfd) {
 
     int new_fd;
     struct sockaddr_storage their_addr;
@@ -218,7 +218,7 @@ waitForConnections(Skeleton *skelIn, int sockfd) {
     std::thread *t;
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        new_fd = accept(mSockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
             perror("accept");
             continue;
@@ -238,12 +238,12 @@ waitForConnections(Skeleton *skelIn, int sockfd) {
         t = *it;
         t->join();
     }
-    close(sockfd);
+    close(mSockfd);
 }
 
-void
+bool
 Skeleton::initializeServer() {
-    //int sockfd, new_fd;
+    //int mSockfd, new_fd;
     struct addrinfo hints, *servinfo, *p;
     //struct sockaddr_storage their_addr;
     //socklen_t sin_size;
@@ -251,51 +251,64 @@ Skeleton::initializeServer() {
     char s[INET6_ADDRSTRLEN];
     int rv;
     int yes = 1;
+    int bindSucceeded = 0;
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE; //use my ip
 
-    if(( rv = getaddrinfo(NULL, portNo.c_str(), &hints, &servinfo)) != 0) {
+
+    while(!bindSucceeded) {
+        mPortNo.clear();
+        mPortNo = mPortNo + std::to_string(mPortNoInt);
+        //std::cout << "port no = " <<mPortNo << std::endl;
+
+    if(( rv = getaddrinfo(NULL, mPortNo.c_str(), &hints, &servinfo)) != 0) {
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-        return;
+        return false;
      }
 
 
 // loop through all the results and bind to the first we can
     for(p = servinfo; p != NULL; p = p->ai_next) {
-        if((sockfd = socket(p->ai_family, p->ai_socktype,
+        if((mSockfd = socket(p->ai_family, p->ai_socktype,
                 p->ai_protocol)) == -1) {
             perror("server: socket");
             continue;
         }
 
-        if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
+        if(setsockopt(mSockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
                 sizeof(int)) == -1) {
             perror("setsockopt");
-            exit(1);
+            return false;
         }
 
-        if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sockfd);
-            perror("server: bind");
+        if (bind(mSockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(mSockfd);
+            //perror("server: bind");
             continue;
         }
  
+        bindSucceeded = 1;
         break;
     }
 
     if (p == NULL)  {
+       ++mPortNoInt; //try next port
+    }
+    }
+
+    if (p == NULL)  {
         fprintf(stderr, "server: failed to bind\n");
-        return;
+        return false;
     }
 
     freeaddrinfo(servinfo); // all done with this structure
 
-    if(listen(sockfd, BACKLOG) == -1) {
+    if(listen(mSockfd, BACKLOG) == -1) {
         perror("listen");
-        exit(1);
+        return false;
     }
 
     sa.sa_handler = sigchld_handler; // reap all dead processes
@@ -303,23 +316,25 @@ Skeleton::initializeServer() {
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sa, NULL) == -1) {
         perror("sigaction");
-        exit(1);
+        return false;
     }
 
     if(gethostname(s, sizeof s) == 0) {
         fprintf(stderr, "my name is = %s\n", s);
-        serverName = s;
+        mServerName = s;
     } else {
         perror("error getting host name");
+        return false;
     }
 
+    return true;
     /*printf("server: waiting for connections...\n");
 
     std::vector<std::thread*> threadsList;
     std::thread *t;
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
-        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+        new_fd = accept(mSockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
             perror("accept");
             continue;
@@ -339,7 +354,7 @@ Skeleton::initializeServer() {
         t = *it;
         t->join();
     }
-    close(sockfd);*/
+    close(mSockfd);*/
 }
 
 std::string
@@ -372,15 +387,18 @@ Skeleton::stopServer() {
 std::thread&
 Skeleton::getServerInstance() {
 
-    initializeServer();
-    static std::thread sServerThread(waitForConnections, this, sockfd);
+    if(!initializeServer()) {
+        exit(1); //unable to start server
+    }
+    static std::thread sServerThread(waitForConnections, this, mSockfd);
     return sServerThread;
 }
 
 std::map<std::string, Skeleton*> Skeleton::sSkelMap;
-int Skeleton::sockfd = -1;
-std::string Skeleton::serverName;
-std::string Skeleton::portNo = "10003";
+int Skeleton::mSockfd = -1;
+std::string Skeleton::mServerName;
+std::string Skeleton::mPortNo;
+int Skeleton::mPortNoInt = 10000;
 
 /*
  * These lines should go at the end of every source code file
