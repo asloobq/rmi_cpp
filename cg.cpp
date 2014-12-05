@@ -186,6 +186,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine(1, "std::string mObjRef;");
         emitter.emitLine("Rmi::Rmi *mRmiObj;");
         emitter.emitLine("std::string mTypeName;");
+        emitter.emitLine("std::string mServerName, mPortNo;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_stub(const std::string &);");
@@ -227,11 +228,46 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
 
         // Emit the constructor.
-        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) : mObjRef(objRefIn) {");
+        emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
         emitter.emitLine("mTypeName = std::string(\"$$\");");
+        emitter.emitLine("mServerName = \"\";");
+        //emitter.emitLine("for(std::string::const_iterator it = objRefIn.begin(); it != objRefIn.end(); it++) {");
+        //emitter.emitLine(1, "if(*it == '^') {");
+        //emitter.emitLine(1, "break;");
+        //emitter.emitLine(-1, "} else {");
+        //emitter.emitLine(1, "mServerName.append(*it);");
+        //emitter.emitLine(-1, "}");
+        //emitter.emitLine(-1, "}");
+        //get server name
+        emitter.emitLine("int i = 0;");
+        emitter.emitLine("while(i < objRefIn.length()) {");
+        emitter.emitLine(1, "if(objRefIn.at(i) != '^') {");
+        emitter.emitLine(1, "mServerName = mServerName + objRefIn.at(i);");
+        emitter.emitLine(-1, "} else {");
+        emitter.emitLine(1, "++i;");
+        emitter.emitLine("break;");
+        emitter.emitLine(-1, "}");
+        emitter.emitLine("++i;");
+        emitter.emitLine(-1, "}");
+        //port no is
+        emitter.emitLine("while(i < objRefIn.length()) {");
+        emitter.emitLine(1, "if(objRefIn.at(i) != '^') {");
+        emitter.emitLine(1, "mPortNo = mPortNo + objRefIn.at(i);");
+        emitter.emitLine(-1, "} else {");
+        emitter.emitLine(1, "++i;");
+        emitter.emitLine("break;");
+        emitter.emitLine(-1, "}");
+        emitter.emitLine("++i;");
+        emitter.emitLine(-1, "}");
+        //actual object ref
+        emitter.emitLine("while(i < objRefIn.length()) {");
+        emitter.emitLine(1, "mObjRef = mObjRef + objRefIn.at(i);");
+        emitter.emitLine("++i;");
+        emitter.emitLine(-1, "}");
+        emitter.emitLine("std::cout << mServerName << \" : \" << mPortNo << \" : \" << mObjRef;");
        	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
@@ -308,14 +344,14 @@ main(int argc, char *argv[]) {
             std::string sign = createMethodSignature(methods[i]);
             if (methods[i].return_type == "int") {
                 emitter.emitLine("int result = 0;");
-                emitter.emitLineF("result = mRmiObj->intCall(mTypeName, mObjRef, %d, bufStr);", i);
+                emitter.emitLineF("result = mRmiObj->intCall(mServerName, mPortNo, mTypeName, mObjRef, %d, bufStr);", i);
                 emitter.emitLine("return result;");
             } else if (methods[i].return_type == "string") {
                 emitter.emitLine("std::string result;");
-                emitter.emitLineF("result = mRmiObj->stringCall(mTypeName, mObjRef, %d, bufStr);", i);
+                emitter.emitLineF("result = mRmiObj->stringCall(mServerName, mPortNo, mTypeName, mObjRef, %d, bufStr);", i);
                 emitter.emitLine("return result;");
             } else {
-                emitter.emitLineF("mRmiObj->asyncCall(mTypeName, mObjRef, %d, bufStr);", i);
+                emitter.emitLineF("mRmiObj->asyncCall(mServerName, mPortNo, mTypeName, mObjRef, %d, bufStr);", i);
             }
             emitter.emitLine(-1, "}");
         }
@@ -416,7 +452,7 @@ main(int argc, char *argv[]) {
         // The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "std::stringstream ss;");
-        emitter.emitLine("ss << mInterface;");
+        emitter.emitLine("ss << serverName << \"^\" << portNo << \"^\" << mInterface;");
         emitter.emitLine("return ss.str();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
@@ -439,7 +475,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("try {");
         emitter.emitLine(1, "objRef = sObjectMap.at(objRefIn);");
         emitter.emitLine(-1, "} catch (std::exception &ex) {");
-        emitter.emitLine(1, "std::cout << \"Could not find object \" << objRef << __FILE__ << \":\"<<__LINE__ << std::endl;");
+        emitter.emitLine(1, "std::cout << \"Could not find object \" << objRefIn << __FILE__ << \":\"<<__LINE__ << std::endl;");
         emitter.emitLine("return;");
         emitter.emitLine(-1, "}");
         emitter.emitLine("switch(methodIdIn) {");

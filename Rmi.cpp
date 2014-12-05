@@ -38,7 +38,7 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void Rmi::connectToServer() {
+void Rmi::connectToServer(std::string serverNameIn, std::string portNoIn) {
     std::cout<<"\n Connecting \n";
 
     struct addrinfo hints, *servinfo, *p;
@@ -49,7 +49,7 @@ void Rmi::connectToServer() {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
-    if((rv = getaddrinfo("localhost", PORT_NO, &hints, &servinfo)) != 0) {
+    if((rv = getaddrinfo(serverNameIn.c_str(), portNoIn.c_str(), &hints, &servinfo)) != 0) {
         fprintf(stderr,"usage: client hostname\n");
         return;
     }
@@ -180,22 +180,22 @@ Rmi::pack(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::str
     return packet;
 }
 
-void Rmi::asyncCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn ) { 
+void Rmi::asyncCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn ) { 
     std::cout<<"\n In asyncCall id = " << methodIdIn << std::endl;
 
     std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
-    connectToServer();
+    connectToServer(serverNameIn, portNoIn);
     call(sockfd, packet, RET_TYPE_VOID);
     disconnect();
 
 }
 
 
-int Rmi::intCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
+int Rmi::intCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
     std::cout<<"\n In Rmi::intCall id = " << methodIdIn << " typename = " << typeNameIn <<std::endl;
 
     std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
-    connectToServer();
+    connectToServer(serverNameIn, portNoIn);
     std::string retVal = call(sockfd, packet, RET_TYPE_INT);
     int result = atoi(retVal.c_str());
     printf("\n return value = %d", result);
@@ -204,12 +204,12 @@ int Rmi::intCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, s
     return result;
 }
 
-std::string Rmi::stringCall(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
+std::string Rmi::stringCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
     //return "";
     std::cout<<"\n In Rmi::stringCall id = " << methodIdIn << std::endl;
 
     std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
-    connectToServer();
+    connectToServer(serverNameIn, portNoIn);
     std::string retVal = call(sockfd, packet, RET_TYPE_STRING);
     std::cout<<"\n return value = "<<retVal;
     disconnect();

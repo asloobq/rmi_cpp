@@ -8,6 +8,14 @@
 
 class Skeleton {
 
+    static int sockfd; //server socket file descriptor
+
+    void initializeServer();
+
+    protected:
+    static std::string serverName;
+    static std::string portNo;
+
     public:
         // key is name of the interface
         // value if of derived type (any which extends from Skeleton)
