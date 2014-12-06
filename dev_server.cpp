@@ -8,7 +8,7 @@
 
 using namespace std;
 
-
+#define DEBUG 0
 
 class DevInterfaceImpl : public DevInterface {
     public:
@@ -30,7 +30,9 @@ DevInterfaceImpl::my_method2(int arg1, int arg2) {
 
     std::stringstream result;
     result << "arg1 = " << arg1 << " arg2 = " << arg2;
-    std::cout << "\n In my_method2 result = "<<result.str().c_str();
+    if(DEBUG) {
+        std::cout << "\n In my_method2 result = "<<result.str().c_str();
+    }
     return result.str();
 }
 
@@ -42,14 +44,18 @@ DevInterfaceImpl::my_method3(int p1, const std::vector<int> &p2, int p3) {
     for(auto it = p2.begin(); it != p2.end(); it++) {
         result += (*it);
     }
-    std::cout<<endl<< "In my_method3 result = " << result;
+    if(DEBUG) {
+        std::cout<<endl<< "In my_method3 result = " << result;
+    }
     return result;
 }
 
 void
 DevInterfaceImpl::my_method4(int p1, const std::vector<string> &p2, const std::string &p3) {
 
-    std::cout << endl << "In my_method4 p1="<<p1<<" p3="<<p3.c_str() << ". ";
+    if(DEBUG) {
+        std::cout << endl << "In my_method4 p1="<<p1<<" p3="<<p3.c_str() << ". ";
+    }
     for(auto it = p2.begin(); it != p2.end(); it++) {
         std::cout << (*it).c_str() << " ";
     }

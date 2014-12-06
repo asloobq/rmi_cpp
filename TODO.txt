@@ -1,5 +1,5 @@
 1] [Done] Get current system name and port no
 2] [Done] Send system name and port no as part of the object id
 3] [Done] decode system name and port no from object id and then start client on the port no provided
-4] Remove hardcoded port no. Should find any free port automatically.
-5] Remove the extra debug statements
+4] [Done] Remove hardcoded port no. Should find any free port automatically.
+5] [Done] Remove the extra debug statements

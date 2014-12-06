@@ -22,11 +22,11 @@
                 perror (#str);                  \
         } while(0)
 
-//#define PORT_NO "10003"
 #define BACKLOG 100000000
 #define RET_TYPE_VOID 0
 #define RET_TYPE_INT 1
 #define RET_TYPE_STRING 2
+#define DEBUG 0
 
 /*
     Title : A stream socket server demo
@@ -59,7 +59,7 @@ printError(int bytesRead, int actualLength) {
     } else if (bytesRead < 0) {
         std::cerr<<"\n ERROR reading from socket";
     } else {
-        std::cout<<"\n Total bytes read ="<<bytesRead<<" actualLength = "<<actualLength;
+        std::cerr<<"\n Total bytes read ="<<bytesRead<<" actualLength = "<<actualLength;
     }
 }
 
@@ -68,7 +68,9 @@ printError(int bytesRead, int actualLength) {
 */
 void
 getRequestFromClient (int sock, Skeleton *skelIn) {
-    std::cout<<"\nsock = "<<sock<<" Waiting to read";
+    if(DEBUG) {
+        std::cout<<"\nsock = "<<sock<<" Waiting to read";
+    }
     size_t totalLength;
     //bad code with lots of ifs
 
@@ -78,21 +80,26 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
     //check if 4 bytes read properly
     if(ret == sizeof(totalLength)) {
         //verify length
-        std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
-
+        if(DEBUG) {
+            std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
+        }
         //read length of typeName
         size_t typeLen;
         int ret = recv(sock, (char*) &typeLen, sizeof (typeLen), 0);
         if(ret == sizeof(typeLen)) {
             remLength -= sizeof (typeLen);
             //read type name
-            std::cout << "sock = " << sock << " typename length = " << typeLen << std::endl;
+            if(DEBUG) {
+                std::cout << "sock = " << sock << " typename length = " << typeLen << std::endl;
+            }
             std::vector<char> typeName(typeLen);
             ret = recv(sock, &typeName[0], typeLen, 0);
             if(ret == typeLen) {
                 remLength -= typeLen;
                 std::string typeNameStr(&typeName[0], typeLen);
-                std::cout << "sock = " << sock << " typename = " << typeNameStr.c_str() << std::endl;
+                if(DEBUG) {
+                    std::cout << "sock = " << sock << " typename = " << typeNameStr.c_str() << std::endl;
+                }
                 //read length of objRef
                 size_t objRefLen;
                 ret = recv(sock, (char*) &objRefLen, sizeof(objRefLen), 0);
@@ -100,26 +107,32 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
                 if(ret == sizeof(objRefLen)) {
                     remLength -= sizeof(objRefLen);
                     //read obj ref
-                    std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
+                    if(DEBUG) {
+                        std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
+                    }
                     std::vector<char> objRef(objRefLen);
                     ret = recv(sock, &objRef[0], objRefLen, 0);
 
                     if(ret == objRefLen) {
                         remLength -= objRefLen;
                         std::string objRefStr(&objRef[0], objRefLen);
-                        std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
-
+                        if(DEBUG) {
+                            std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
+                        }
                         //read method Id (Note: its a normal int and NOT size_t
                         int methodId;
                         int ret = recv(sock, (char*) &methodId, sizeof(methodId), 0);
 
                         if(ret == sizeof(methodId)) {
                             remLength -= sizeof(methodId);
-                            std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
-
+                            if(DEBUG) {
+                                std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
+                            }
                             //read remaining bytes
                             if(remLength == 0) {
-                                std::cout<<"\nsock = "<<sock<<" Nothing to read";
+                                if(DEBUG) {
+                                    std::cout<<"\nsock = "<<sock<<" Nothing to read";
+                                }
                                 return;
                             } else {}
                             std::vector<char> data(remLength);
@@ -127,8 +140,9 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
 
                             if(ret == remLength) {
                                 std::string dataStr(&data[0], remLength);
-                                std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
-
+                                if(DEBUG) {
+                                    std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
+                                }
                                 int resInt; //Note: this should be an int
                                 std::string resStr("");
                                 //From the object type name, get the Skel object
@@ -137,8 +151,8 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
                                 try {
                                     skelObj = Skeleton::sSkelMap.at(typeNameStr);
                                 } catch (std::exception& ex) {
-                                    std::cout << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
-                                    std::cout << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
+                                    std::cerr << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
+                                    std::cerr << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
                                     return;
                                 }
                                 // make the method call
@@ -148,7 +162,9 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
                                 if(retType == RET_TYPE_VOID) {
                                     // do nothing
                                 } else if(retType == RET_TYPE_INT) { //int
-                                    std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
+                                    if(DEBUG) {
+                                        std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
+                                    }
                                     std::string res((char *) &resInt, sizeof(resInt));
                                     //send result back
                                     ret = write(sock, res.c_str(), res.length());
@@ -158,7 +174,9 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
                                     } else {}
 
                                 } else if(retType == RET_TYPE_STRING) { //string
-                                    std::cout<<"\nsock = "<<sock<<" result = "<<resStr;
+                                    if(DEBUG) {
+                                        std::cout<<"\nsock = "<<sock<<" result = "<<resStr;
+                                    }
                                     //write length of string
                                     size_t len = resStr.length();
                                     std::string resPacket((char *) &len, sizeof(len));
@@ -200,7 +218,9 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
         printError(ret, sizeof(totalLength));
     }
 
-    std::cout<<"\nsock = "<<sock<<" Exiting";
+    if(DEBUG) {
+        std::cout<<"\nsock = "<<sock<<" Exiting";
+    }
 }
 
 
@@ -211,8 +231,9 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
     struct sockaddr_storage their_addr;
     socklen_t sin_size;
     char s[INET6_ADDRSTRLEN];
-
-    printf("server: waiting for connections...\n");
+    if(DEBUG) {
+        printf("server: waiting for connections...\n");
+    }
 
     std::vector<std::thread*> threadsList;
     std::thread *t;
@@ -228,12 +249,16 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
             get_in_addr((struct sockaddr *)&their_addr),
             s, sizeof s);
 
-        printf("server: got connection from %s\n", s);
+        if(DEBUG) {
+            printf("server: got connection from %s\n", s);
+        }
         t = new std::thread(getRequestFromClient, new_fd, skelIn);
         threadsList.push_back(t);
     }
 
-    std::cout<<"\n Exiting";
+    if(DEBUG) {
+        std::cout<<"\n Exiting";
+    }
     for(auto it = threadsList.begin(); it != threadsList.end(); it++) {
         t = *it;
         t->join();
@@ -243,10 +268,7 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
 
 bool
 Skeleton::initializeServer() {
-    //int mSockfd, new_fd;
     struct addrinfo hints, *servinfo, *p;
-    //struct sockaddr_storage their_addr;
-    //socklen_t sin_size;
     struct sigaction sa;
     char s[INET6_ADDRSTRLEN];
     int rv;
@@ -320,7 +342,9 @@ Skeleton::initializeServer() {
     }
 
     if(gethostname(s, sizeof s) == 0) {
-        fprintf(stderr, "my name is = %s\n", s);
+        if(DEBUG) {
+            fprintf(stderr, "my name is = %s\n", s);
+        }
         mServerName = s;
     } else {
         perror("error getting host name");
@@ -328,33 +352,6 @@ Skeleton::initializeServer() {
     }
 
     return true;
-    /*printf("server: waiting for connections...\n");
-
-    std::vector<std::thread*> threadsList;
-    std::thread *t;
-    while(1) {  // main accept() loop
-        sin_size = sizeof their_addr;
-        new_fd = accept(mSockfd, (struct sockaddr *)&their_addr, &sin_size);
-        if (new_fd == -1) {
-            perror("accept");
-            continue;
-        }
-
-        inet_ntop(their_addr.ss_family,
-            get_in_addr((struct sockaddr *)&their_addr),
-            s, sizeof s);
-
-        printf("server: got connection from %s\n", s);
-        t = new std::thread(getRequestFromClient, new_fd, skelIn);
-        threadsList.push_back(t);
-    }
-
-    std::cout<<"\n Exiting";
-    for(auto it = threadsList.begin(); it != threadsList.end(); it++) {
-        t = *it;
-        t->join();
-    }
-    close(mSockfd);*/
 }
 
 std::string

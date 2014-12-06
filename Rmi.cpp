@@ -19,6 +19,8 @@ namespace Rmi {
 #define RET_TYPE_STRING 2
 #define PORT_NO "10003"
 
+#define DEBUG 0
+
 #define error(str) do {                         \
                 perror (#str);                  \
         } while(0)
@@ -39,7 +41,9 @@ void *get_in_addr(struct sockaddr *sa)
 }
 
 void Rmi::connectToServer(std::string serverNameIn, std::string portNoIn) {
-    std::cout<<"\n Connecting \n";
+    if(DEBUG) {
+        std::cout<<"\n Connecting \n";
+    }
 
     struct addrinfo hints, *servinfo, *p;
     int rv;
@@ -78,14 +82,18 @@ void Rmi::connectToServer(std::string serverNameIn, std::string portNoIn) {
 
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
             s, sizeof s);
-    printf("client: connecting to %s\n", s);
+    if(DEBUG) {
+        printf("client: connecting to %s\n", s);
+    }
 
     freeaddrinfo(servinfo); // all done with this structure
 }
 
 void Rmi::disconnect() { 
     close(sockfd);
-    std::cout<<"\n Disconnected \n";
+    if(DEBUG) {
+        std::cout<<"\n Disconnected \n";
+    }
 }
 
 std::string
@@ -93,14 +101,18 @@ Rmi::call(int sockfd, std::string packet, int retType) {
 
     //get length of whole packet
     size_t length = static_cast<int>(packet.length());
-    std::cout<<"\n Packet size = "<< length<<"\n";
+    if(DEBUG) {
+        std::cout<<"\n Packet size = "<< length<<"\n";
+    }
     std::string data((char *) &length, sizeof(length));
     data.append(packet);
 
-    std::cout<<"Sending out "<<data.c_str()<<"\n";
-    std::cout <<"size = "<<data.length()<<"\n";
+    if(DEBUG) {
+        std::cout<<"Sending out "<<data.c_str()<<"\n";
+        std::cout <<"size = "<<data.length()<<"\n";
 
-    std::cout << "\n Waiting to write";
+        std::cout << "\n Waiting to write";
+    }
     int n = write(sockfd, data.c_str(), static_cast<int>(data.length()));
     if (n < 0) { 
          error("ERROR writing to socket");
@@ -109,7 +121,9 @@ Rmi::call(int sockfd, std::string packet, int retType) {
     std::ostringstream retBuff("") ;
 
     if(retType == RET_TYPE_INT) {
-        std::cout<<"\n Waiting for results";
+        if(DEBUG) {
+            std::cout<<"\n Waiting for results";
+        }
         size_t result;                
         int ret = recv(sockfd, (char *)&result, sizeof(result), 0);
         if (ret < 0) {
@@ -119,7 +133,9 @@ Rmi::call(int sockfd, std::string packet, int retType) {
         }
         retBuff << result;
     } else if(retType == RET_TYPE_STRING) {
-        std::cout<<"\n Waiting for results";
+        if(DEBUG) {
+            std::cout<<"\n Waiting for results";
+        }
         size_t len;
         int ret = recv(sockfd, &len, sizeof(len), 0);
         if(ret == sizeof(len)) {
@@ -180,8 +196,11 @@ Rmi::pack(std::string typeNameIn, std::string objRefIn, int methodIdIn, std::str
     return packet;
 }
 
-void Rmi::asyncCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn ) { 
-    std::cout<<"\n In asyncCall id = " << methodIdIn << std::endl;
+void Rmi::asyncCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn,
+                    std::string objRefIn, int methodIdIn, std::string bufferIn ) {
+    if(DEBUG) {
+        std::cout<<"\n In asyncCall id = " << methodIdIn << std::endl;
+    }
 
     std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
     connectToServer(serverNameIn, portNoIn);
@@ -191,27 +210,36 @@ void Rmi::asyncCall(std::string serverNameIn, std::string portNoIn, std::string 
 }
 
 
-int Rmi::intCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
-    std::cout<<"\n In Rmi::intCall id = " << methodIdIn << " typename = " << typeNameIn <<std::endl;
+int Rmi::intCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn,
+                 std::string objRefIn, int methodIdIn, std::string bufferIn) {
+    if(DEBUG) {
+        std::cout<<"\n In Rmi::intCall id = " << methodIdIn << " typename = " << typeNameIn <<std::endl;
+    }
 
     std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
     connectToServer(serverNameIn, portNoIn);
     std::string retVal = call(sockfd, packet, RET_TYPE_INT);
     int result = atoi(retVal.c_str());
-    printf("\n return value = %d", result);
+    if(DEBUG) {
+        printf("\n return value = %d", result);
+    }
     disconnect();
 
     return result;
 }
 
-std::string Rmi::stringCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn, std::string objRefIn, int methodIdIn, std::string bufferIn) {
-    //return "";
-    std::cout<<"\n In Rmi::stringCall id = " << methodIdIn << std::endl;
+std::string Rmi::stringCall(std::string serverNameIn, std::string portNoIn, std::string typeNameIn,
+                            std::string objRefIn, int methodIdIn, std::string bufferIn) {
+    if(DEBUG) {
+        std::cout<<"\n In Rmi::stringCall id = " << methodIdIn << std::endl;
+    }
 
     std::string packet = pack(typeNameIn, objRefIn, methodIdIn, bufferIn);
     connectToServer(serverNameIn, portNoIn);
     std::string retVal = call(sockfd, packet, RET_TYPE_STRING);
-    std::cout<<"\n return value = "<<retVal;
+    if(DEBUG) {
+        std::cout<<"\n return value = "<<retVal;
+    }
     disconnect();
 
    return retVal;

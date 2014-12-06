@@ -226,7 +226,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <cassert>");
         emitter.emitLine("#include <cstring>");
         emitter.emitLine("");
-
+        emitter.emitLine("#define DEBUG 0");
+        emitter.emitLine("");
         // Emit the constructor.
         emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) {");
 	// The 1 as the first argument causes the indent level to be incremented
@@ -234,13 +235,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine(1, "mRmiObj = new Rmi::Rmi();");
         emitter.emitLine("mTypeName = std::string(\"$$\");");
         emitter.emitLine("mServerName = \"\";");
-        //emitter.emitLine("for(std::string::const_iterator it = objRefIn.begin(); it != objRefIn.end(); it++) {");
-        //emitter.emitLine(1, "if(*it == '^') {");
-        //emitter.emitLine(1, "break;");
-        //emitter.emitLine(-1, "} else {");
-        //emitter.emitLine(1, "mServerName.append(*it);");
-        //emitter.emitLine(-1, "}");
-        //emitter.emitLine(-1, "}");
+        
         //get server name
         emitter.emitLine("int i = 0;");
         emitter.emitLine("while(i < objRefIn.length()) {");
@@ -267,7 +262,9 @@ main(int argc, char *argv[]) {
         emitter.emitLine(1, "mObjRef = mObjRef + objRefIn.at(i);");
         emitter.emitLine("++i;");
         emitter.emitLine(-1, "}");
-        emitter.emitLine("std::cout << mServerName << \" : \" << mPortNo << \" : \" << mObjRef;");
+        emitter.emitLine("if(DEBUG) {");
+        emitter.emitLine(1, "std::cout << mServerName << \" : \" << mPortNo << \" : \" << mObjRef;");
+        emitter.emitLine(-1, "}");
        	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
         emitter.emitLine(-1, "}");
@@ -425,6 +422,8 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <string>");
         emitter.emitLine("#include <utility>");
         emitter.emitLine("");
+        emitter.emitLine("#define DEBUG 0");
+        emitter.emitLine("");
         emitter.emitLine("std::map<std::string, $$*> $$_skel::sObjectMap;");
         emitter.emitLine("");
         // Emit the constructor.
@@ -436,11 +435,15 @@ main(int argc, char *argv[]) {
         emitter.emitLine("ss << mInterface;");
         emitter.emitLine("std::pair<std::string, $$*> pair = std::make_pair(ss.str(), mInterface);");
         emitter.emitLine("sObjectMap.insert(pair);");
-        emitter.emitLine("std::cout<<\"Inserting object \"<<ss.str().c_str()<< \" in map \" << &sObjectMap << std::endl;");
+        emitter.emitLine("if(DEBUG) {");
+        emitter.emitLine(1, "std::cout<<\"Inserting object \"<<ss.str().c_str()<< \" in map \" << &sObjectMap << std::endl;");
+        emitter.emitLine(-1, "}");
         emitter.emitLine("size_t isPresent = Skeleton::sSkelMap.count(\"$$_skel\");");
         emitter.emitLine("if(isPresent == 0) {");
         emitter.emitLine(1, "Skeleton::sSkelMap.insert(std::make_pair<std::string, Skeleton*>(\"$$\", this));");
-        emitter.emitLine("std::cout<<\"Inserting string $$ in map \" << &(Skeleton::sSkelMap) << std::endl;");
+        emitter.emitLine("if(DEBUG) {");
+        emitter.emitLine(1, "std::cout<<\"Inserting string $$ in map \" << &(Skeleton::sSkelMap) << std::endl;");
+        emitter.emitLine(-1, "}");
         emitter.emitLine(-1,"}");
         emitter.emitLine("startServer();");
 	// The -1 as the first argument causes the indent level to be decremented
@@ -468,20 +471,25 @@ main(int argc, char *argv[]) {
         emitter.emitLine("size_t totalLen;");
         emitter.emitLine("memcpy(&totalLen, bufPtr, sizeof (totalLen));");
         emitter.emitLine("bufPtr += sizeof (totalLen);");
+        emitter.emitLine("if(DEBUG) {");
         emitter.emitLine("std::cout<<std::endl<<\" total length of packet = \"<<totalLen;");
         //get correct object
         emitter.emitLine("std::cout << \"map.size() = \" << sObjectMap.size() << std::endl;");
+        emitter.emitLine("}");
         emitter.emitLine("$$* objRef;");
         emitter.emitLine("try {");
         emitter.emitLine(1, "objRef = sObjectMap.at(objRefIn);");
         emitter.emitLine(-1, "} catch (std::exception &ex) {");
-        emitter.emitLine(1, "std::cout << \"Could not find object \" << objRefIn << __FILE__ << \":\"<<__LINE__ << std::endl;");
+        emitter.emitLine(1, "std::cerr << \"Could not find object \" << objRefIn << __FILE__ << \":\"<<__LINE__ << std::endl;");
         emitter.emitLine("return;");
         emitter.emitLine(-1, "}");
         emitter.emitLine("switch(methodIdIn) {");
         emitter.increment_indent_level();
         for (size_t i = 0; i < methods.size(); i++) {
-            emitter.emitLineF("case %d: std::cout<<\"\\nCalling method %s\";", i, methods[i].name.c_str());
+            emitter.emitLineF("case %d:", i);
+            emitter.emitLine("if(DEBUG) {");
+            emitter.emitLineF("std::cout<<\"\\nCalling method %s\";", methods[i].name.c_str());
+            emitter.emitLine("}");
             emitter.emitLine(1, "{");
             //unmarshall the arguments
             int paramNo = 1;
@@ -491,16 +499,22 @@ main(int argc, char *argv[]) {
                     emitter.emitLineF("int p%d;", paramNo);
                     emitter.emitLineF("memcpy(&p%d, bufPtr, sizeof (int));", paramNo);
                     emitter.emitLine("bufPtr += sizeof (int);");
+                    emitter.emitLine("if(DEBUG) {");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d;", paramNo, paramNo);
+                    emitter.emitLine("}");
                     emitter.emitLine("");
                 } else if((*it).compare("string") == 0) {
                     //read length of string
                     emitter.emitLine("memcpy(&len, bufPtr, sizeof (len));");
                     emitter.emitLine("bufPtr += sizeof (len);");
+                    emitter.emitLine("if(DEBUG) {");
                     emitter.emitLine("std::cout<<std::endl<<\"length of string = \"<<len;");
+                    emitter.emitLine("}");
                     emitter.emitLineF("std::string p%d(bufPtr, len);", paramNo);
                     emitter.emitLine("bufPtr += len;");
+                    emitter.emitLine("if(DEBUG) {");
                     emitter.emitLineF("std::cout<<std::endl<<\"p%d = \"<<p%d.c_str();", paramNo, paramNo);
+                    emitter.emitLine("}");
                     emitter.emitLine("");
                 } else if((*it).compare("array of int") == 0) {
                     emitter.emitLineF("std::vector<int> p%d;", paramNo);
