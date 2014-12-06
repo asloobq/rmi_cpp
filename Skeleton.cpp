@@ -83,137 +83,125 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
         if(DEBUG) {
             std::cout<<"\nsock = "<<sock<<" totalLength = "<<totalLength<<"\n";
         }
-        //read length of typeName
-        size_t typeLen;
-        int ret = recv(sock, (char*) &typeLen, sizeof (typeLen), 0);
-        if(ret == sizeof(typeLen)) {
-            remLength -= sizeof (typeLen);
-            //read type name
+        std::vector<char> buffer(totalLength);
+        //read entire packet
+        ret = recv(sock, (char*) &buffer[0], totalLength, 0);
+        //totalLength var is set to zero at this point. Don't know why
+        if(ret > 0 &&  ((unsigned int) ret == remLength)) {
+            char *bufPtr = buffer.data();
+
+            //read length of typeName
+            size_t typeLen;
+            memcpy(&typeLen, bufPtr, sizeof(typeLen));
+            bufPtr += sizeof(typeLen);
+            remLength -= sizeof(typeLen);
+
             if(DEBUG) {
                 std::cout << "sock = " << sock << " typename length = " << typeLen << std::endl;
             }
+
             std::vector<char> typeName(typeLen);
-            ret = recv(sock, &typeName[0], typeLen, 0);
-            if(ret == typeLen) {
-                remLength -= typeLen;
-                std::string typeNameStr(&typeName[0], typeLen);
-                if(DEBUG) {
-                    std::cout << "sock = " << sock << " typename = " << typeNameStr.c_str() << std::endl;
-                }
-                //read length of objRef
-                size_t objRefLen;
-                ret = recv(sock, (char*) &objRefLen, sizeof(objRefLen), 0);
+            memcpy(&typeName[0], bufPtr, typeLen);
+            bufPtr += typeLen;
+            remLength -= typeLen;
 
-                if(ret == sizeof(objRefLen)) {
-                    remLength -= sizeof(objRefLen);
-                    //read obj ref
-                    if(DEBUG) {
-                        std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
-                    }
-                    std::vector<char> objRef(objRefLen);
-                    ret = recv(sock, &objRef[0], objRefLen, 0);
-
-                    if(ret == objRefLen) {
-                        remLength -= objRefLen;
-                        std::string objRefStr(&objRef[0], objRefLen);
-                        if(DEBUG) {
-                            std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
-                        }
-                        //read method Id (Note: its a normal int and NOT size_t
-                        int methodId;
-                        int ret = recv(sock, (char*) &methodId, sizeof(methodId), 0);
-
-                        if(ret == sizeof(methodId)) {
-                            remLength -= sizeof(methodId);
-                            if(DEBUG) {
-                                std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
-                            }
-                            //read remaining bytes
-                            if(remLength == 0) {
-                                if(DEBUG) {
-                                    std::cout<<"\nsock = "<<sock<<" Nothing to read";
-                                }
-                                return;
-                            } else {}
-                            std::vector<char> data(remLength);
-                            ret = recv(sock, &data[0], remLength, 0);
-
-                            if(ret == remLength) {
-                                std::string dataStr(&data[0], remLength);
-                                if(DEBUG) {
-                                    std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
-                                }
-                                int resInt; //Note: this should be an int
-                                std::string resStr("");
-                                //From the object type name, get the Skel object
-                                //instance
-                                Skeleton *skelObj;
-                                try {
-                                    skelObj = Skeleton::sSkelMap.at(typeNameStr);
-                                } catch (std::exception& ex) {
-                                    std::cerr << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
-                                    std::cerr << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
-                                    return;
-                                }
-                                // make the method call
-                                skelObj->callMethod(objRefStr, methodId, data, resInt, resStr);
-                                int retType = skelObj->getReturnType(methodId);
-                                //format result based on return type
-                                if(retType == RET_TYPE_VOID) {
-                                    // do nothing
-                                } else if(retType == RET_TYPE_INT) { //int
-                                    if(DEBUG) {
-                                        std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
-                                    }
-                                    std::string res((char *) &resInt, sizeof(resInt));
-                                    //send result back
-                                    ret = write(sock, res.c_str(), res.length());
-                                    if(ret != res.length()) {
-                                        printError(ret, res.length());
-                                        return;
-                                    } else {}
-
-                                } else if(retType == RET_TYPE_STRING) { //string
-                                    if(DEBUG) {
-                                        std::cout<<"\nsock = "<<sock<<" result = "<<resStr;
-                                    }
-                                    //write length of string
-                                    size_t len = resStr.length();
-                                    std::string resPacket((char *) &len, sizeof(len));
-                                    resPacket.append(resStr);
-                                    //send result back
-                                    ret = write(sock, resPacket.c_str(), resPacket.length());
-                                    if(ret != resPacket.length()) {
-                                        printError(ret, resPacket.length());
-                                        return;
-                                    } else {}
-                                } else {
-                                    assert(false);
-                                }
-                            } else {
-                                printError(ret, remLength);
-                                return;
-                            }
-                        } else {
-                         printError(ret, sizeof(methodId));
-                         return;
-                        }
-                    } else {
-                     printError(ret, objRefLen); 
-                     return;
-                    }
-                } else {
-                 printError(ret, sizeof(objRefLen));
-                 return;
-                }
-            } else {
-             printError(ret, remLength);
-             return;
+            std::string typeNameStr(&typeName[0], typeLen);
+            if(DEBUG) {
+                std::cout << "sock = " << sock << " typename = " << typeNameStr.c_str() << std::endl;
             }
-        } else {
-         printError(ret, remLength);
-         return;
-        }  
+
+            //read length of objRef
+            size_t objRefLen;
+            memcpy(&objRefLen, bufPtr, sizeof(objRefLen));
+            bufPtr += sizeof(objRefLen);
+            remLength -= sizeof(objRefLen);
+
+            if(DEBUG) {
+                std::cout<<"\nsock = "<<sock<<" objRefLen = "<<objRefLen;
+            }
+
+            //read obj ref
+            std::vector<char> objRef(objRefLen);
+            memcpy(&objRef[0], bufPtr, objRefLen);
+            bufPtr += objRefLen;
+            remLength -= objRefLen;
+
+            std::string objRefStr(&objRef[0], objRefLen);
+            if(DEBUG) {
+                std::cout<<"\nsock = "<<sock<<" objref = "<<objRefStr;
+            }
+
+            //read method Id (Note: its a normal int and NOT size_t
+            int methodId;
+            memcpy(&methodId, bufPtr, sizeof(methodId));
+            bufPtr += sizeof(methodId);
+            remLength -= sizeof(methodId);
+
+            if(DEBUG) {
+                std::cout<<"\nsock = "<<sock<<" methodId = "<<methodId;
+            }
+
+            //read remaining bytes
+            if(remLength == 0) {
+                std::cerr<<"\nsock = "<<sock<<" Nothing to read";
+                return;
+            }
+
+            std::vector<char> data(remLength);
+            memcpy(&data[0], bufPtr, remLength);
+
+            if(DEBUG) {
+                std::cout<<"\nsock = "<<sock<<" remaining data ="<<&data[0];
+            }
+
+            int resInt; //Note: this should be an int
+            std::string resStr("");
+            //From the object type name, get the Skel object
+            //instance
+            Skeleton *skelObj;
+            try {
+                skelObj = Skeleton::sSkelMap.at(typeNameStr);
+            } catch (std::exception& ex) {
+                std::cerr << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
+                std::cerr << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
+                return;
+            }
+            // make the method call
+            skelObj->callMethod(objRefStr, methodId, data, resInt, resStr);
+            int retType = skelObj->getReturnType(methodId);
+            //format result based on return type
+            if(retType == RET_TYPE_VOID) {
+                // do nothing
+            } else if(retType == RET_TYPE_INT) { //int
+                if(DEBUG) {
+                    std::cout<<"\nsock = "<<sock<<" result = "<<resInt;
+                }
+                std::string res((char *) &resInt, sizeof(resInt));
+                //send result back
+                ret = write(sock, res.c_str(), res.length());
+                if(ret < 0 || ((unsigned int) ret != res.length())) {
+                    printError(ret, res.length());
+                    return;
+                } else {}
+
+            } else if(retType == RET_TYPE_STRING) { //string
+                if(DEBUG) {
+                    std::cout<<"\nsock = "<<sock<<" result = "<<resStr;
+                }
+                //write length of string
+                size_t len = resStr.length();
+                std::string resPacket((char *) &len, sizeof(len));
+                resPacket.append(resStr);
+                //send result back
+                ret = write(sock, resPacket.c_str(), resPacket.length());
+                if(ret < 0 || ((unsigned int) ret != resPacket.length())) {
+                    printError(ret, resPacket.length());
+                    return;
+                } else {}
+            } else {
+                assert(false);
+            }
+        }
     } else {
         printError(ret, sizeof(totalLength));
     }
