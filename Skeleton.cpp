@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <exception>
+#include <mutex>
 
 #define Error(str) do {                         \
                 perror (#str);                  \
@@ -209,6 +210,7 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
     if(DEBUG) {
         std::cout<<"\nsock = "<<sock<<" Exiting";
     }
+    close(sock);
 }
 
 
@@ -225,6 +227,8 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
 
     std::vector<std::thread*> threadsList;
     std::thread *t;
+    bool isThreadCreated;
+    size_t releasedThread = -1;
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(mSockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -240,8 +244,33 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
         if(DEBUG) {
             printf("server: got connection from %s\n", s);
         }
-        t = new std::thread(getRequestFromClient, new_fd, skelIn);
-        threadsList.push_back(t);
+
+        isThreadCreated = false;
+        while(!isThreadCreated) {
+            try {
+                t = new std::thread(getRequestFromClient, new_fd, skelIn);
+                threadsList.push_back(t);
+                isThreadCreated = true;
+            } catch (std::exception &ex) {
+                if(DEBUG) {
+                    std::cerr << "Unable to create thread" << ex.what() << std::endl;
+                }
+                if(threadsList.size() > (releasedThread+1)) {
+                    (threadsList.at(++releasedThread))->join();
+                } else {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+                /*if(threadsList.size() > 0) {
+                    std::thread *current = threadsList.at(0);
+                    while(threadsList.size() > 0 && !current->joinable()) {
+                        threadsList.erase(threadsList.begin());
+                        current = threadsList.at(0);
+                    }
+                    current->join();
+                    threadsList.erase(threadsList.begin());
+                }*/
+            }
+        }
     }
 
     if(DEBUG) {
@@ -371,11 +400,16 @@ Skeleton::stopServer() {
 
 std::thread&
 Skeleton::getServerInstance() {
-
-    if(!initializeServer()) {
-        exit(1); //unable to start server
+    std::mutex serverInitMutex;
+    serverInitMutex.lock();
+    if(mSockfd == -1) {
+        if(!initializeServer()) {
+            exit(1); //unable to start server
+        }
     }
-    static std::thread sServerThread(waitForConnections, this, mSockfd);
+    serverInitMutex.unlock();
+
+    static std::thread sServerThread(waitForConnections, this, mSockfd); 
     return sServerThread;
 }
 
@@ -384,6 +418,7 @@ int Skeleton::mSockfd = -1;
 std::string Skeleton::mServerName;
 std::string Skeleton::mPortNo;
 int Skeleton::mPortNoInt = 10000;
+std::mutex serverInitMutex;
 
 /*
  * These lines should go at the end of every source code file
