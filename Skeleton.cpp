@@ -29,6 +29,7 @@
 #define RET_TYPE_STRING 2
 #define DEBUG 0
 
+
 /*
     Title : A stream socket server demo
     http://beej.us/guide/bgnet/examples/server.c
@@ -229,6 +230,7 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
     std::thread *t;
     bool isThreadCreated;
     size_t releasedThread = -1;
+
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
         new_fd = accept(mSockfd, (struct sockaddr *)&their_addr, &sin_size);
@@ -248,39 +250,22 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
         isThreadCreated = false;
         while(!isThreadCreated) {
             try {
-                t = new std::thread(getRequestFromClient, new_fd, skelIn);
-                threadsList.push_back(t);
+                std::thread (getRequestFromClient, new_fd, skelIn).detach();
                 isThreadCreated = true;
             } catch (std::exception &ex) {
                 if(DEBUG) {
                     std::cerr << "Unable to create thread" << ex.what() << std::endl;
                 }
-                if(threadsList.size() > (releasedThread+1)) {
-                    (threadsList.at(++releasedThread))->join();
-                } else {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                }
-                /*if(threadsList.size() > 0) {
-                    std::thread *current = threadsList.at(0);
-                    while(threadsList.size() > 0 && !current->joinable()) {
-                        threadsList.erase(threadsList.begin());
-                        current = threadsList.at(0);
-                    }
-                    current->join();
-                    threadsList.erase(threadsList.begin());
-                }*/
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
         }
     }
 
+    close(mSockfd);
+
     if(DEBUG) {
         std::cout<<"\n Exiting";
     }
-    for(auto it = threadsList.begin(); it != threadsList.end(); it++) {
-        t = *it;
-        t->join();
-    }
-    close(mSockfd);
 }
 
 bool
