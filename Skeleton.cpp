@@ -69,7 +69,7 @@ printError(int bytesRead, int actualLength) {
  Services a client request.
 */
 void
-getRequestFromClient (int sock, Skeleton *skelIn) {
+getRequestFromClient (int sock) {
     if(DEBUG) {
         std::cout<<"\nsock = "<<sock<<" Waiting to read";
     }
@@ -256,7 +256,7 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
         isThreadCreated = false;
         while(!isThreadCreated) {
             try {
-                std::thread (getRequestFromClient, new_fd, skelIn).detach();
+                std::thread (getRequestFromClient, new_fd).detach();
                 isThreadCreated = true;
             } catch (std::exception &ex) {
                 if(DEBUG) {
