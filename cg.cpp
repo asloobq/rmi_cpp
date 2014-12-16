@@ -227,6 +227,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("#include <cstring>");
         emitter.emitLine("");
         emitter.emitLine("#define DEBUG 0");
+        emitter.emitLine("#define BUF_SIZE 100");
         emitter.emitLine("");
         // Emit the constructor.
         emitter.emitLine("$$_stub::$$_stub(const std::string &objRefIn) {");
@@ -237,7 +238,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("mServerName = \"\";");
         
         //get server name
-        emitter.emitLine("int i = 0;");
+        emitter.emitLine("size_t i = 0;");
         emitter.emitLine("while(i < objRefIn.length()) {");
         emitter.emitLine(1, "if(objRefIn.at(i) != '^') {");
         emitter.emitLine(1, "mServerName = mServerName + objRefIn.at(i);");
@@ -283,7 +284,7 @@ main(int argc, char *argv[]) {
             //Emit method body
             emitter.increment_indent_level();
             //Marshall the arguments
-            emitter.emitLine("char *buf = new char[10000];"); //should be dynamic
+            emitter.emitLine("char *buf = new char[BUF_SIZE];"); //should be dynamic
             emitter.emitLine("char *bufPtr = buf;");
             emitter.emitLine("size_t len;");
             int paramNo = 1;
@@ -308,7 +309,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
                     emitter.emitLine("bufPtr += sizeof(len);");
                     //copy elements one by one
-                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    emitter.emitLine("for(size_t i = 0; i < len; i++) {");
                     emitter.emitLineF(1, "memcpy(bufPtr, &p%d[i], sizeof(int));", paramNo);
                     emitter.emitLine("bufPtr += sizeof(int);");
                     emitter.emitLine(-1, "}");
@@ -320,7 +321,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("bufPtr += sizeof(len);");
                     //copy elements one by one
                     emitter.emitLine("size_t elemSize;");
-                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    emitter.emitLine("for(size_t i = 0; i < len; i++) {");
                     //put length of current string
                     emitter.emitLineF(1, "elemSize = p%d.at(i).length();", paramNo);
                     emitter.emitLine("memcpy(bufPtr, &elemSize, sizeof(elemSize));");
@@ -523,7 +524,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("bufPtr += sizeof(len);");
                     //copy elements one by one
                     emitter.emitLine("int elem;"); //Note : This has to be an int
-                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    emitter.emitLine("for(size_t i = 0; i < len; i++) {");
                     //read elements one by one
                     emitter.emitLine(1, "memcpy(&elem, bufPtr, sizeof(elem));");
                     emitter.emitLineF("p%d.push_back(elem);", paramNo);
@@ -537,7 +538,7 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("bufPtr += sizeof(len);");
                     //copy elements one by one
                     emitter.emitLine("size_t elemSize;");
-                    emitter.emitLine("for(int i = 0; i < len; i++) {");
+                    emitter.emitLine("for(size_t i = 0; i < len; i++) {");
                     //read the size of the element
                     emitter.emitLine(1, "memcpy(&elemSize, bufPtr, sizeof(elemSize));");
                     emitter.emitLine("bufPtr += sizeof(elemSize);");

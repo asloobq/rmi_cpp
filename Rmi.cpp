@@ -142,7 +142,7 @@ Rmi::call(int sockfd, std::string packet, int retType) {
             char *buffer = new char[len+1];
             int ret = recv(sockfd, buffer, len, 0);
             buffer[len] = '\0';
-            if( ret == len) {
+            if((ret >= 0) && ((unsigned)ret == len)) {
                 retBuff << buffer;
             } else {
                 if (ret < 0) {
