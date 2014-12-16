@@ -17,7 +17,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <exception>
-#include <mutex>
 
 #define Error(str) do {                         \
                 perror (#str);                  \
@@ -28,7 +27,8 @@
 #define RET_TYPE_INT 1
 #define RET_TYPE_STRING 2
 #define DEBUG 0
-
+#define FINITE_REQUESTS 0
+#define MAX_REQUESTS 100
 
 /*
     Title : A stream socket server demo
@@ -162,7 +162,9 @@ getRequestFromClient (int sock, Skeleton *skelIn) {
             //instance
             Skeleton *skelObj;
             try {
+                Skeleton::mMapMutex.lock();
                 skelObj = Skeleton::sSkelMap.at(typeNameStr);
+                Skeleton::mMapMutex.unlock();
             } catch (std::exception& ex) {
                 std::cerr << "Exception ex = " << ex.what() << __FILE__ << __LINE__ << std::endl;
                 std::cerr << "skel map = " << &(Skeleton::sSkelMap) << " size is " << Skeleton::sSkelMap.size() << std::endl;
@@ -230,6 +232,10 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
     std::thread *t;
     bool isThreadCreated;
     size_t releasedThread = -1;
+    size_t maxRequests = 0;
+    if(FINITE_REQUESTS) {
+        maxRequests = MAX_REQUESTS;
+    }
 
     while(1) {  // main accept() loop
         sin_size = sizeof their_addr;
@@ -257,6 +263,12 @@ waitForConnections(Skeleton *skelIn, int mSockfd) {
                     std::cerr << "Unable to create thread" << ex.what() << std::endl;
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+        }
+        if(FINITE_REQUESTS) {
+            --maxRequests;
+            if(!maxRequests) {
+                break;
             }
         }
     }
@@ -403,6 +415,7 @@ int Skeleton::mSockfd = -1;
 std::string Skeleton::mServerName;
 std::string Skeleton::mPortNo;
 int Skeleton::mPortNoInt = 10000;
+std::mutex Skeleton::mMapMutex;
 std::mutex serverInitMutex;
 
 /*

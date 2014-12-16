@@ -284,51 +284,53 @@ main(int argc, char *argv[]) {
             //Emit method body
             emitter.increment_indent_level();
             //Marshall the arguments
-            emitter.emitLine("char *buf = new char[BUF_SIZE];"); //should be dynamic
-            emitter.emitLine("char *bufPtr = buf;");
+            //emitter.emitLine("char *buf = new char[BUF_SIZE];"); //should be dynamic
+            //emitter.emitLine("char *bufPtr = buf;");
+            emitter.emitLine("std::vector<char> buf(BUF_SIZE);");
             emitter.emitLine("size_t len;");
+            emitter.emitLine("size_t bufIndex = 0;");
             int paramNo = 1;
             for(std::vector<string>::iterator it = methods[i].param_types.begin();
                 it != methods[i].param_types.end(); it++, paramNo++) {
                 if((*it).compare("int") == 0) {
-                    emitter.emitLineF("memcpy(bufPtr, &p%d, sizeof(p%d));", paramNo, paramNo);
-                    emitter.emitLineF("bufPtr += sizeof(p%d);", paramNo);
+                    emitter.emitLineF("memcpy(&buf[bufIndex], &p%d, sizeof(p%d));", paramNo, paramNo);
+                    emitter.emitLineF("bufIndex += sizeof(p%d);", paramNo);
                     emitter.emitLine("");
                 } else if((*it).compare("string") == 0) {
                     //copy length of the string
                     emitter.emitLineF("len = p%d.length();", paramNo);
-                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
-                    emitter.emitLine("bufPtr += sizeof(len);");
+                    emitter.emitLine("memcpy(&buf[bufIndex], &len, sizeof(len));");
+                    emitter.emitLine("bufIndex += sizeof(len);");
                     //copy string itself
-                    emitter.emitLineF("memcpy(bufPtr, p%d.c_str(), len);", paramNo);
-                    emitter.emitLineF("bufPtr += len;", paramNo);
+                    emitter.emitLineF("memcpy(&buf[bufIndex], p%d.c_str(), len);", paramNo);
+                    emitter.emitLineF("bufIndex += len;", paramNo);
                     emitter.emitLine("");
                 } else if((*it).compare("array of int") == 0) {
                     //put the array length
                     emitter.emitLineF("len = p%d.size();", paramNo);
-                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
-                    emitter.emitLine("bufPtr += sizeof(len);");
+                    emitter.emitLine("memcpy(&buf[bufIndex], &len, sizeof(len));");
+                    emitter.emitLine("bufIndex += sizeof(len);");
                     //copy elements one by one
                     emitter.emitLine("for(size_t i = 0; i < len; i++) {");
-                    emitter.emitLineF(1, "memcpy(bufPtr, &p%d[i], sizeof(int));", paramNo);
-                    emitter.emitLine("bufPtr += sizeof(int);");
+                    emitter.emitLineF(1, "memcpy(&buf[bufIndex], &p%d[i], sizeof(int));", paramNo);
+                    emitter.emitLine("bufIndex += sizeof(int);");
                     emitter.emitLine(-1, "}");
                     emitter.emitLine("");
                 } else if((*it).compare("array of string") == 0) {
                     //put the array length
                     emitter.emitLineF("len = p%d.size();", paramNo);
-                    emitter.emitLine("memcpy(bufPtr, &len, sizeof(len));");
-                    emitter.emitLine("bufPtr += sizeof(len);");
+                    emitter.emitLine("memcpy(&buf[bufIndex], &len, sizeof(len));");
+                    emitter.emitLine("bufIndex += sizeof(len);");
                     //copy elements one by one
                     emitter.emitLine("size_t elemSize;");
                     emitter.emitLine("for(size_t i = 0; i < len; i++) {");
                     //put length of current string
                     emitter.emitLineF(1, "elemSize = p%d.at(i).length();", paramNo);
-                    emitter.emitLine("memcpy(bufPtr, &elemSize, sizeof(elemSize));");
-                    emitter.emitLine("bufPtr += sizeof(elemSize);");
+                    emitter.emitLine("memcpy(&buf[bufIndex], &elemSize, sizeof(elemSize));");
+                    emitter.emitLine("bufIndex += sizeof(elemSize);");
                     //put the actual string
-                    emitter.emitLineF("memcpy(bufPtr, p%d.at(i).c_str(), elemSize);", paramNo);
-                    emitter.emitLine("bufPtr += elemSize;");
+                    emitter.emitLineF("memcpy(&buf[bufIndex], p%d.at(i).c_str(), elemSize);", paramNo);
+                    emitter.emitLine("bufIndex += elemSize;");
                     emitter.emitLine(-1, "}");
                     emitter.emitLine("");
                 } else {
@@ -336,8 +338,8 @@ main(int argc, char *argv[]) {
                 }
             }
 
-            emitter.emitLine("std::string bufStr(buf, bufPtr - buf);");
-            emitter.emitLine("delete[] buf;");
+            emitter.emitLine("std::string bufStr(&buf[0], bufIndex);");
+            //emitter.emitLine("delete[] buf;");
 
             std::string sign = createMethodSignature(methods[i]);
             if (methods[i].return_type == "int") {
@@ -383,12 +385,14 @@ main(int argc, char *argv[]) {
         emitter.emitLine("");
         emitter.emitLine("#include \"Skeleton.hpp\"");
         emitter.emitLine("#include \"$$.hpp\"");
+        emitter.emitLine("#include <mutex>");
         emitter.emitLine("");
         emitter.emitLine("class $$_skel : public Skeleton {");
 	// The 1 as the first argument causes the indent level to be incremented
 	// before outputting the line.
         emitter.emitLine(1, "$$* mInterface;");
         emitter.emitLine("static std::map<std::string, $$*> sObjectMap;");
+        emitter.emitLine("std::mutex mObjectMutex;");
         emitter.emitLine("public:");
         emitter.increment_indent_level();
         emitter.emitLine("explicit $$_skel($$ *);");
@@ -439,6 +443,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine("if(DEBUG) {");
         emitter.emitLine(1, "std::cout<<\"Inserting object \"<<ss.str().c_str()<< \" in map \" << &sObjectMap << std::endl;");
         emitter.emitLine(-1, "}");
+        emitter.emitLine("mMapMutex.lock();");
         emitter.emitLine("size_t isPresent = Skeleton::sSkelMap.count(\"$$_skel\");");
         emitter.emitLine("if(isPresent == 0) {");
         emitter.emitLine(1, "Skeleton::sSkelMap.insert(std::make_pair<std::string, Skeleton*>(\"$$\", this));");
@@ -446,6 +451,7 @@ main(int argc, char *argv[]) {
         emitter.emitLine(1, "std::cout<<\"Inserting string $$ in map \" << &(Skeleton::sSkelMap) << std::endl;");
         emitter.emitLine(-1, "}");
         emitter.emitLine(-1,"}");
+        emitter.emitLine("mMapMutex.unlock();");
         emitter.emitLine("startServer();");
 	// The -1 as the first argument causes the indent level to be decremented
 	// before outputting the line.
@@ -549,7 +555,8 @@ main(int argc, char *argv[]) {
                     emitter.emitLine("");
                 }
             }
-
+            //lock the object
+            emitter.emitLine("mObjectMutex.lock();");
             //call the method using the arguments created
             if(methods[i].return_type.compare("int") == 0) {
                 emitter.emitStringF("resInt = objRef->%s(", methods[i].name.c_str());
@@ -570,6 +577,9 @@ main(int argc, char *argv[]) {
             if(methods[i].return_type.compare("string") == 0) {
                 emitter.emitString("resStr.append(res);");
             }
+            //unlock the mutex
+            emitter.emitLine("");
+            emitter.emitLine("mObjectMutex.unlock();");
             emitter.emitLine(-1, "}");
             emitter.emitLine("break;");
         }

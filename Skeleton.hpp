@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <map>
+#include <mutex>
 
 class Skeleton {
 
@@ -21,6 +22,7 @@ class Skeleton {
         // key is name of the interface
         // value if of derived type (any which extends from Skeleton)
         static std::map<std::string, Skeleton*> sSkelMap;
+        static std::mutex mMapMutex;
 
         std::string getObjectReference() const;
         void startServer();
